@@ -35,7 +35,8 @@ celerpy = "celerpy.cli:app"
 
 [tool.ruff]
 exclude = [".venv", "./celerpy/_version.py"]
-line-length = 120
+line-length = 80
+indent-width = 4
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"]}
