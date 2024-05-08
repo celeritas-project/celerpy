@@ -53,57 +53,57 @@ pre-commit:
 #
 # Formatting
 #
-.PHONY: chores
-chores: ruff_fixes black_fixes dapperdata_fixes tomlsort_fixes
+.PHONY: style
+style: style/ruff style/black style/dapperdata style/tomlsort
 
-.PHONY: ruff_fixes
-ruff_fixes:
+.PHONY: style/ruff
+style/ruff:
 	$(PYTHON) -m ruff check . --fix
 
-.PHONY: black_fixes
-black_fixes:
+.PHONY: style/black
+style/black:
 	$(PYTHON) -m ruff format .
 
-.PHONY: dapperdata_fixes
-dapperdata_fixes:
+.PHONY: style/dapperdata
+style/dapperdata:
 	$(PYTHON) -m dapperdata.cli pretty . --no-dry-run
 
-.PHONY: tomlsort_fixes
-tomlsort_fixes:
+.PHONY: style/tomlsort
+style/tomlsort:
 	$(PYTHON_ENV) toml-sort $$(find . -not -path "./.venv/*" -name "*.toml") -i
 
 #
 # Testing
 #
-.PHONY: tests
-tests: install pytest ruff_check black_check mypy_check dapperdata_check tomlsort_check paracelsus_check
+.PHONY: test
+test: install pytest test/ruff test/black test/mypy test/dapperdata test/tomlsort test/paracelsus
 
 .PHONY: pytest
 pytest:
 	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing tests
 
-.PHONY: pytest_loud
-pytest_loud:
+.PHONY: pytest/loud
+pytest/loud:
 	$(PYTHON) -m pytest -s --cov=./${PACKAGE_SLUG} --cov-report=term-missing tests
 
-.PHONY: ruff_check
-ruff_check:
+.PHONY: test/ruff
+test/ruff:
 	$(PYTHON) -m ruff check
 
-.PHONY: black_check
-black_check:
+.PHONY: test/black
+test/black:
 	$(PYTHON) -m ruff format . --check
 
-.PHONY: mypy_check
-mypy_check:
+.PHONY: test/mypy
+test/mypy:
 	$(PYTHON) -m mypy ${PACKAGE_SLUG}
 
-.PHONY: dapperdata_check
-dapperdata_check:
+.PHONY: test/dapperdata
+test/dapperdata:
 	$(PYTHON) -m dapperdata.cli pretty .
 
-.PHONY: tomlsort_check
-tomlsort_check:
+.PHONY: test/tomlsort
+test/tomlsort:
 	$(PYTHON_ENV) toml-sort $$(find . -not -path "./.venv/*" -name "*.toml") --check
 #
 # Dependencies
