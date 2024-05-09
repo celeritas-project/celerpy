@@ -3,6 +3,12 @@ run-name: >-
   ${{github.event.pull_request.title}}
   (#${{github.event.number}})
 
+on:
+  pull_request:
+    branches:
+      - main
+      - backports/**
+  
 concurrency:
   group: pr-${{github.ref}}-${{github.event.number}}-${{github.workflow}}
   cancel-in-progress: true
