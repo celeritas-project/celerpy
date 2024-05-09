@@ -76,13 +76,16 @@ style/tomlsort:
 # Testing
 #
 .PHONY: test
-test: install pytest test/ruff test/black test/mypy test/dapperdata test/tomlsort test/paracelsus
+test: install test/all
 
-.PHONY: pytest
+.PHONY: test/all
+test/all: test/pytest test/ruff test/black test/mypy test/dapperdata test/tomlsort
+
+.PHONY: test/pytest
 pytest:
 	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing tests
 
-.PHONY: pytest/loud
+.PHONY: test/pytest-loud
 pytest/loud:
 	$(PYTHON) -m pytest -s --cov=./${PACKAGE_SLUG} --cov-report=term-missing tests
 
@@ -105,6 +108,7 @@ test/dapperdata:
 .PHONY: test/tomlsort
 test/tomlsort:
 	$(PYTHON_ENV) toml-sort $$(find . -not -path "./.venv/*" -name "*.toml") --check
+
 #
 # Dependencies
 #

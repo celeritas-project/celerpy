@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+env:
+  COLUMNS: 100
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - pytest
+          - ruff
+          - black
+          - mypy
+          - tomlsort
+    
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install Dependencies
+        run: make install
+      - name: Test
+        run: make test/${{matrix.target}}
+          

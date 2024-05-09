@@ -3,26 +3,26 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: make pytest_check
+        entry: make test/pytest
         language: system
         pass_filenames: false
       - id: ruff
         name: ruff
-        entry: make ruff_check
+        entry: make test/ruff
         language: system
         pass_filenames: false
       - id: black
         name: black
-        entry: make black_check
+        entry: make test/black
         language: system
         pass_filenames: false
       - id: mypy
         name: mypy
-        entry: make mypy_check
+        entry: make test/mypy
         language: system
         pass_filenames: false
       - id: tomlsort
         name: tomlsort
-        entry: make tomlsort_check
+        entry: make test/tomlsort
         language: system
         pass_filenames: false

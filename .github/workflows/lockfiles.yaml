@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
 
   # Every Monday at 1PM UTC (7AM EST)
-  schedule:
-    - cron: "0 11 * * 1"
+  #  schedule:
+  #    - cron: "0 11 * * 1"
 
 jobs:
   push-update:
