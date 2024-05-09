@@ -1,11 +1,8 @@
 name: PyPI
 
 on:
-  push:
-    branches:
-      - "**"
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
   publish:
@@ -27,3 +24,5 @@ jobs:
         run: make build
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
+
+# vim: set nowrap tw=100:

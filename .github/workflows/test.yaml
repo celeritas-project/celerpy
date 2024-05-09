@@ -1,11 +1,11 @@
-name: Tests
+name: Test
 
 on:
-  push:
-  pull_request:
-
+  workflow_dispatch:
+  workflow_call:
+  
 concurrency:
-  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: test-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
 env:
@@ -35,4 +35,5 @@ jobs:
         run: make install
       - name: Test
         run: make test/${{matrix.target}}
-          
+
+# vim: set nowrap tw=100:

@@ -1,0 +1,25 @@
+name: push
+
+on:
+  push:
+    branches:
+      - main
+      - backports/**
+
+concurrency:
+  group: push-${{github.ref}}-${{github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  pypi:
+    uses: ./.github/workflows/pypi.yml
+      #  doc:
+      #    uses: ./.github/workflows/doc.yml
+  all:
+    needs: [pypi]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Success
+      run: "true"
+
+# vim: set nowrap tw=100:
