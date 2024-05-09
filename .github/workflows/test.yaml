@@ -12,7 +12,8 @@ env:
   COLUMNS: 100
 
 jobs:
-  check:
+  test:
+    name: ${{matrix.target}}
     strategy:
       fail-fast: false
       matrix:
