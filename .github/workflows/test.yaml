@@ -17,10 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         target:
+          - black
+          - dapperdata
+          - mypy
           - pytest
           - ruff
-          - black
-          - mypy
           - tomlsort
     
     runs-on: ubuntu-latest
