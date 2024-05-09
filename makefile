@@ -81,11 +81,11 @@ test: $(BUILD_DIR) test/all
 test/all: test/pytest test/ruff test/black test/mypy test/dapperdata test/tomlsort
 
 .PHONY: test/pytest
-pytest:
+test/pytest:
 	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing tests
 
 .PHONY: test/pytest-loud
-pytest/loud:
+test/pytest/loud:
 	$(PYTHON) -m pytest -s --cov=./${PACKAGE_SLUG} --cov-report=term-missing tests
 
 .PHONY: test/ruff
