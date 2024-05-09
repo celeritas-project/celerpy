@@ -1,52 +1,52 @@
 PACKAGE_SLUG=celerpy
 ifdef CI
-	PYTHON_PYENV:=
-	PYTHON_VERSION:=$(shell python --version|cut -d" " -f2)
+	PYENV_TARGET:=
+	PYENV_PYTHON=python
+	PYTHON_VERSION:=$(shell $(PYENV_PYTHON) --version|cut -d" " -f2)
 else
-	PYTHON_PYENV:=pyenv
+	PYENV_TARGET:=pyenv
+	PYENV_PYTHON:=pyenv exec python
 	PYTHON_VERSION:=$(shell cat .python-version)
 endif
-PYTHON_SHORT_VERSION:=$(shell echo $(PYTHON_VERSION) | grep -o '[0-9].[0-9]*')
 
 ifeq ($(USE_SYSTEM_PYTHON), true)
-	PYTHON_PACKAGE_PATH:=$(shell python -c "import sys; print(sys.path[-1])")
+	PYTHON_PACKAGE_PATH:=$(shell $(PYENV_PYTHON) -c "import sys; print(sys.path[-1])")
 	PYTHON_ENV:=
-	PYTHON_VENV:=
+	VENV_TARGET:=
 else
+	PYTHON_SHORT_VERSION:=$(shell echo $(PYTHON_VERSION) | grep -o '[0-9].[0-9]*')
 	PYTHON_PACKAGE_PATH:=.venv/lib/python$(PYTHON_SHORT_VERSION)/site-packages
 	PYTHON_ENV:=  . .venv/bin/activate &&
-	PYTHON_VENV:= .venv
+	VENV_TARGET:= .venv
 endif
 
 PYTHON:=$(PYTHON_ENV) python
 
 # Used to confirm that pip has run at least once
-PACKAGE_CHECK:=$(PYTHON_PACKAGE_PATH)/build
-PYTHON_DEPS:=$(PACKAGE_CHECK)
-
+BUILD_DIR:=$(PYTHON_PACKAGE_PATH)/build
 
 .PHONY: all
-all: $(PACKAGE_CHECK)
+all: $(PYENV_TARGET) $(BUILD_DIR)
 
 .PHONY: install
-install: $(PYTHON_PYENV) $(PYTHON_VENV) pip
-
-.venv:
-	python -m venv .venv
+install: $(PYENV_TARGET) $(VENV_TARGET) pip
 
 .PHONY: pyenv
 pyenv:
 	pyenv install --skip-existing $(PYTHON_VERSION)
 
+.venv:
+	$(PYENV_PYTHON) -m venv .venv
+
 .PHONY: pip
-pip: $(PYTHON_VENV)
+pip: $(VENV_TARGET)
 	$(PYTHON) -m pip install -e .[dev]
 
-$(PACKAGE_CHECK): $(PYTHON_VENV)
+$(BUILD_DIR): $(VENV_TARGET)
 	$(PYTHON) -m pip install -e .[dev]
 
 .PHONY: pre-commit
-pre-commit:
+pre-commit: $(BUILD_DIR)
 	$(PYTHON_ENV) pre-commit install
 
 #
@@ -75,7 +75,7 @@ style/tomlsort:
 # Testing
 #
 .PHONY: test
-test: install test/all
+test: $(BUILD_DIR) test/all
 
 .PHONY: test/all
 test/all: test/pytest test/ruff test/black test/mypy test/dapperdata test/tomlsort
@@ -111,7 +111,6 @@ test/tomlsort:
 #
 # Dependencies
 #
-
 .PHONY: rebuild_dependencies
 rebuild_dependencies:
 	$(PYTHON) -m uv pip compile --output-file=requirements.txt pyproject.toml
@@ -120,18 +119,15 @@ rebuild_dependencies:
 .PHONY: dependencies
 dependencies: requirements.txt requirements-dev.txt
 
-requirements.txt: $(PACKAGE_CHECK) pyproject.toml
+requirements.txt: $(BUILD_DIR) pyproject.toml
 	$(PYTHON) -m uv pip compile --upgrade --output-file=requirements.txt pyproject.toml
 
-requirements-dev.txt: $(PACKAGE_CHECK) pyproject.toml
+requirements-dev.txt: $(BUILD_DIR) pyproject.toml
 	$(PYTHON) -m uv pip compile --upgrade --output-file=requirements-dev.txt --extra=dev pyproject.toml
-
-
 
 #
 # Packaging
 #
-
 .PHONY: build
-build: $(PACKAGE_CHECK)
+build: $(BUILD_DIR)
 	$(PYTHON) -m build
