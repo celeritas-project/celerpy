@@ -21,6 +21,7 @@ dev = [
   "dapperdata",
   "glom",
   "mypy",
+  "pre-commit",
   "pytest",
   "pytest-cov",
   "pytest-pretty",

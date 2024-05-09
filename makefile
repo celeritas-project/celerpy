@@ -1,29 +1,28 @@
-SHELL := /bin/bash
 PACKAGE_SLUG=celerpy
 ifdef CI
-	PYTHON_PYENV :=
-	PYTHON_VERSION := $(shell python --version|cut -d" " -f2)
+	PYTHON_PYENV:=
+	PYTHON_VERSION:=$(shell python --version|cut -d" " -f2)
 else
-	PYTHON_PYENV := pyenv
-	PYTHON_VERSION := $(shell cat .python-version)
+	PYTHON_PYENV:=pyenv
+	PYTHON_VERSION:=$(shell cat .python-version)
 endif
-PYTHON_SHORT_VERSION := $(shell echo $(PYTHON_VERSION) | grep -o '[0-9].[0-9]*')
+PYTHON_SHORT_VERSION:=$(shell echo $(PYTHON_VERSION) | grep -o '[0-9].[0-9]*')
 
 ifeq ($(USE_SYSTEM_PYTHON), true)
 	PYTHON_PACKAGE_PATH:=$(shell python -c "import sys; print(sys.path[-1])")
-	PYTHON_ENV :=
-	PYTHON := python
-	PYTHON_VENV :=
+	PYTHON_ENV:=
+	PYTHON_VENV:=
 else
 	PYTHON_PACKAGE_PATH:=.venv/lib/python$(PYTHON_SHORT_VERSION)/site-packages
-	PYTHON_ENV :=  . .venv/bin/activate &&
-	PYTHON := . .venv/bin/activate && python
-	PYTHON_VENV := .venv
+	PYTHON_ENV:=  . .venv/bin/activate &&
+	PYTHON_VENV:= .venv
 endif
+
+PYTHON:=$(PYTHON_ENV) python
 
 # Used to confirm that pip has run at least once
 PACKAGE_CHECK:=$(PYTHON_PACKAGE_PATH)/build
-PYTHON_DEPS := $(PACKAGE_CHECK)
+PYTHON_DEPS:=$(PACKAGE_CHECK)
 
 
 .PHONY: all
@@ -48,7 +47,7 @@ $(PACKAGE_CHECK): $(PYTHON_VENV)
 
 .PHONY: pre-commit
 pre-commit:
-	pre-commit install
+	$(PYTHON_ENV) pre-commit install
 
 #
 # Formatting
