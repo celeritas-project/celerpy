@@ -19,7 +19,7 @@ jobs:
     needs: [pypi]
     runs-on: ubuntu-latest
     steps:
-    - name: Success
-      run: "true"
+      - name: Success
+        run: "true"
 
 # vim: set nowrap tw=100:

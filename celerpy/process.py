@@ -12,20 +12,37 @@ from .settings import settings
 # TODO: from signal import SIGINT, SIGTERM
 
 
-class Process:
-    """Send data to and from a Celeritas 'JSON lines'-based process.
+def dump_json_line(obj, file):
+    """Write a single line of JSON, a newline, and flush."""
+    file.write(json.dumps(obj))
+    file.write("\n")
+    file.flush()
 
-    TODO: https://stackoverflow.com/questions/57313023/can-asyncio-subprocess-be-used-with-contextmanager
+
+def communicate(obj, process):
+    """Write a line of JSON and read a line of response.
+
+    For this to work, the child application *must* write a single line of
+    JSON formatted text, with nothing else, ending in a newline, and flush
+    immediately afterward.
+
+    If the file has already closed, this will return None.
+
+    .. warning::
+       This method is susceptible to deadlock... so be careful
     """
+    try:
+        dump_json_line(obj, process.stdin)
+        line = process.stdout.readline()
+    except BrokenPipeError:
+        return None
+    return json.loads(line) if line else None
 
-    def __init__(self, executable_name, *, env=None):
-        (child_stdin, send_stdin) = os.pipe()  # for parent -> child writes
-        (recv_stdout, child_stdout) = os.pipe()  # for child -> parent writes
 
-        # Buffer output line by line
-        self.outfile = os.fdopen(send_stdin, "w", buffering=1)
-        self.infile = os.fdopen(recv_stdout)
+class Process(subprocess.Popen):
+    """Launch and manage a Celeritas process."""
 
+    def __init__(self, executable, *, env=None, **kwargs):
         # Set up environment variables
         if env is None:
             env = os.environ.copy()
@@ -39,47 +56,12 @@ class Process:
 
         # Create child process, which implicitly keeps a copy of the file
         # descriptors
-        self.child = subprocess.Popen(
-            [settings.prefix_path / "bin" / executable_name, "-"],
-            stdin=child_stdin,
-            stdout=child_stdout,
+        super().__init__(
+            [settings.prefix_path / "bin" / executable, "-"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            bufsize=1,  # buffer by line
+            text=True,
             env=env,
+            **kwargs,
         )
-
-        # Close the descriptors in this process (child still keeps them)
-        os.close(child_stdin)
-        os.close(child_stdout)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        self.close()
-
-    def communicate(self, obj):
-        """Write a line of JSON and read a response."""
-        print("Writing", repr(obj), "...")
-        self.outfile.write(json.dumps(obj))
-        self.outfile.write("\n")
-        self.outfile.flush()
-        print("...flushed")
-        if self.child.poll():
-            print("waiting...")
-            return self.child.wait()
-        print("reading line...")
-        line = self.infile.readline()
-        return json.loads(line) if line else None
-
-    def _hard_close(self):
-        self.outfile.close()
-        self.infile.close()
-        if not self.child.poll():
-            print("terminating...")
-            self.child.terminate()
-
-    def close(self):
-        try:
-            if not self.child.poll():
-                return self.communicate(None)
-        finally:
-            self._hard_close()

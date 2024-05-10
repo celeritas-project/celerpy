@@ -5,38 +5,45 @@
 from pathlib import Path
 
 from celerpy.settings import settings
+from celerpy.process import Process, communicate
 
 settings.prefix_path = Path(__file__).parent / "mock-prefix"
 
 
-def test_mock_manual():
-    from celerpy.process import Process
-
+def test_manual():
     p = Process("mock-process")
-    assert not p.child.poll()
-    result = p.communicate("hello")
+    result = communicate("hello", p)
     assert result == "success"
-    result = p.communicate(["foo", "bar"])
+    result = communicate(["foo", "bar"], p)
     assert result == ["success", ["foo", "bar"]]
-    result = p.close()
+    result = communicate(None, p)
     assert result == "closing"
+    p.wait(timeout=0.5)
 
 
-def test_mock_context():
-    from celerpy.process import Process
-
+def test_context():
     with Process("mock-process") as p:
-        result = p.communicate("hello")
+        result = communicate("hello", p)
         assert result == "success"
-        result = p.communicate(["foo", "bar"])
+        result = communicate(["foo", "bar"], p)
         assert result == ["success", ["foo", "bar"]]
+        # NOTE: we don't explicitly tell the process to exit cleanly, so
+        # when `input()` gets an EOFError due to the stdin pipe closing, the
+        # process tries to write "closing" to `stdout`, but that pipe has
+        # already been closed
 
 
-def test_mock_abort():
-    from celerpy.process import Process
-
+def test_abort():
     with Process("mock-process") as p:
-        result = p.communicate("hello")
+        result = communicate("hello", p)
         assert result == "success"
-        result = p.communicate("abort")
+        result = communicate("abort", p)
         assert result is None
+
+
+def test_abort2():
+    with Process("mock-process") as p:
+        result = communicate("hello", p)
+        assert result == "success"
+        p.terminate()
+        result = communicate("terminating", p)

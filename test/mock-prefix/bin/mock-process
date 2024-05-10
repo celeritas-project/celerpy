@@ -2,24 +2,46 @@
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""
+"""Mock a 'JSON lines' style process.
+
+
 """
 import json
+import signal
 import sys
 
+def log(*args):
+    print("<child>", *args, file=sys.stderr, flush=True)
+
 def dump(obj, file=sys.stdout):
-    json.dump(obj, file)
-    file.write('\n')
-    file.flush()
+    try:
+        json.dump(obj, file)
+        file.write('\n')
+        file.flush()
+    except BrokenPipeError as e:
+        log(e)
+
+def terminate(signum, frame):
+    log("caught signal", signum)
+    sys.exit(signum)
+
+def read_input():
+    try:
+        return json.loads(input())
+    except EOFError:
+        return None
+
+signal.signal(signal.SIGINT, terminate)
+signal.signal(signal.SIGTERM, terminate)
 
 cmd = input()
-print("<child> read command", repr(cmd), file=sys.stderr)
+log("read command", repr(cmd))
 dump("success")
-print("<child> entering loop", file=sys.stderr)
-while (cmd := json.loads(input())) != None:
-    print("<child> read command", cmd, file=sys.stderr)
+log("entering loop")
+while (cmd := read_input()) != None:
+    log("read command", cmd)
     if cmd == "abort":
-        print("<child> Aborting!", file=sys.stderr)
+        log("Aborting!")
         sys.exit(1)
     dump(["success", cmd])
 dump("closing")
