@@ -82,11 +82,11 @@ test/all: test/pytest test/ruff test/black test/mypy test/dapperdata test/tomlso
 
 .PHONY: test/pytest
 test/pytest:
-	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing tests
+	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing test
 
 .PHONY: test/pytest-loud
-test/pytest/loud:
-	$(PYTHON) -m pytest -s --cov=./${PACKAGE_SLUG} --cov-report=term-missing tests
+test/pytest-loud:
+	$(PYTHON) -m pytest -s --cov=./${PACKAGE_SLUG} --cov-report=term-missing test
 
 .PHONY: test/ruff
 test/ruff:
