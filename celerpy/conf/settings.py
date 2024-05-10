@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     ``CELER_PREFIX_PATH`` (case insensitive).
     """
 
-    model_config = SettingsConfigDict(env_prefix="celer_")
+    model_config = SettingsConfigDict(
+        env_prefix="celer_", validate_assignment=True
+    )
 
     debug: bool = False
     prefix_path: Optional[DirectoryPath] = Field(
