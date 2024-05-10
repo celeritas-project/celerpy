@@ -17,7 +17,9 @@ class Settings(BaseSettings):
         env_prefix="celer_", validate_assignment=True
     )
 
+    color: bool = True
     debug: bool = False
+    # TODO: log, log_local, disable_device
     prefix_path: Optional[DirectoryPath] = Field(
         None, description="Path to the Celeritas build/install directory"
     )

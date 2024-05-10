@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+"""
+"""
+import json
+import sys
+
+def dump(obj, file=sys.stdout):
+    json.dump(obj, file)
+    file.write('\n')
+    file.flush()
+
+cmd = input()
+print("<child> read command", repr(cmd), file=sys.stderr)
+dump("success")
+print("<child> entering loop", file=sys.stderr)
+while (cmd := json.loads(input())) != None:
+    print("<child> read command", cmd, file=sys.stderr)
+    if cmd == "abort":
+        print("<child> Aborting!", file=sys.stderr)
+        sys.exit(1)
+    dump(["success", cmd])
+dump("closing")
