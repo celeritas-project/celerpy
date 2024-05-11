@@ -53,9 +53,9 @@ def test_close():
     with launch("mock-process") as p:
         result = communicate_json(p, "hello")
         assert result == "success"
-        close(p)
-        p.wait(timeout=5.0)  # should be nearly instantaneous
+        result = close(p, timeout=0.25)
         assert p.returncode == signal.SIGINT
+        assert result.strip() == json.dumps("terminating")
 
     print("closed process")
 

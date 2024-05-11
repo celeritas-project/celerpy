@@ -4,9 +4,9 @@
 """Manage a Celeritas process asynchronously with communication."""
 
 import os
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 from typing import Optional, TypeVar
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from .settings import settings
 
@@ -45,18 +45,22 @@ def launch(executable: str, *, env=None, **kwargs):
     )
 
 
-def close(process: P, timeout: Optional[float] = None):
+def close(process: P, *, timeout: Optional[float] = 0.1):
     """Cleanly close a process."""
     if process.poll() is None:
         for s in [SIGINT, SIGTERM, SIGKILL]:
-            print("Sending", s)
             process.send_signal(s)
-            if process.wait(timeout=timeout) is not None:
-                break
+            try:
+                if process.wait(timeout=timeout) is not None:
+                    break
+            except TimeoutExpired:
+                continue
+    (out, _) = process.communicate()
     if process.stdin:
         process.stdin.close()
     if process.stdout:
         process.stdout.close()
+    return out
 
 
 def communicate(process: P, line: str) -> Optional[str]:
@@ -74,12 +78,16 @@ def communicate(process: P, line: str) -> Optional[str]:
     assert not line.endswith("\n")
     assert process.stdin and process.stdout
     try:
-        process.stdin.write(line)
-        process.stdin.write("\n")
-        process.stdin.flush()
-        return process.stdout.readline()
+        if not process.stdin.closed:
+            process.stdin.write(line)
+            process.stdin.write("\n")
+            process.stdin.flush()
+        if not process.stdout.closed:
+            return process.stdout.readline()
     except BrokenPipeError:
-        return None
+        pass
+
+    return None
 
 
 def communicate_model(process: P, model: BaseModel, expected_cls: type[M]) -> M:
@@ -87,4 +95,9 @@ def communicate_model(process: P, model: BaseModel, expected_cls: type[M]) -> M:
     result = communicate(process, model.model_dump_json())
     if not result:
         raise RuntimeError("Missing output from process")
-    return expected_cls.model_validate_json(result)
+    try:
+        return expected_cls.model_validate_json(result)
+    except ValidationError:
+        raise RuntimeError(
+            f"Failed to validate code output as {expected_cls!r}: {result}"
+        )

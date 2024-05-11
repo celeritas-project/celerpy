@@ -22,6 +22,7 @@ def dump(obj, file=sys.stdout):
 
 def terminate(signum, frame):
     log("caught signal", signum)
+    dump("terminating")
     sys.exit(signum)
 
 def read_input():
