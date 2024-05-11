@@ -4,6 +4,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import DirectoryPath, Field
 from typing import Optional
+from typing_extensions import Annotated
 
 
 class Settings(BaseSettings):
@@ -20,6 +21,9 @@ class Settings(BaseSettings):
     color: bool = True
     debug: bool = False
     # TODO: log, log_local, disable_device
-    prefix_path: Optional[DirectoryPath] = Field(
-        None, description="Path to the Celeritas build/install directory"
-    )
+    prefix_path: Optional[
+        Annotated[
+            DirectoryPath,
+            Field(description="Path to the Celeritas build/install directory"),
+        ]
+    ] = None
