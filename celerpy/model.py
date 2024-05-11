@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Manage models used for JSON I/O with Celeritas."""
 
-from typing import Annotated, Optional
+from typing import Annotated, Optional, List
 from pydantic import (
     BaseModel,
     FilePath,
@@ -70,10 +70,18 @@ class ImageParams(BaseModel):
     right: Real3
     pixel_width: PositiveFloat
     dims: Size2
-    units: UnitSystem = Field(serialization_alias="_units")
+    units: UnitSystem = Field(alias="_units")
+
+
+# ad hoc: input to a 'trace' command
+class TraceInput(TraceSetup):
+    image: Optional[ImageInput] = None
+    """Reuse the existing image"""
 
 
 # ad hoc: result from a 'trace' command
 class TraceOutput(BaseModel):
     trace: TraceSetup
     image: ImageParams
+    volumes: Optional[List[str]]
+    sizeof_int: PositiveInt

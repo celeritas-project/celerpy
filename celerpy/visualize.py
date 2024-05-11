@@ -4,7 +4,17 @@
 
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import numpy as np
+import json
 import re
+from typing import Optional
+from . import model
+from . import process
+from pathlib import Path
+
+from tempfile import NamedTemporaryFile
+from subprocess import TimeoutExpired
+
+__all__ = ["CelerGeo"]
 
 
 def _register_cmaps():
@@ -12,15 +22,15 @@ def _register_cmaps():
     from matplotlib import colormaps
 
     resources = files("celerpy._resources")
-    colormaps.register(
-        ListedColormap(
-            np.loadtxt(resources.joinpath("glasbey-light.txt")),
-            name="glasbey_light",
-        )
+    cmap = ListedColormap(
+        np.loadtxt(resources.joinpath("glasbey-light.txt")),
+        name="glasbey_light",
     )
-
-
-_register_cmaps()
+    try:
+        colormaps.register(cmap)
+    except ValueError as e:
+        # Possibly duplicate?
+        print(e)
 
 
 class IdNorm(BoundaryNorm):
@@ -68,6 +78,60 @@ class IdNorm(BoundaryNorm):
 
         result = self.ids_to_idx[value]
         result = np.ma.array(result, mask=mask)
+        return result
+
+
+class CelerGeo:
+    """Manage a celer-geo process with input and output."""
+
+    @classmethod
+    def from_filename(cls, path: Path):
+        """Construct from a geometry filename and default other setup."""
+        return cls(model.ModelSetup(geometry_file=path))
+
+    def __init__(self, setup: model.ModelSetup):
+        # Create the process and attach stdin/stdout pipes
+        self.process = process.launch("celer-geo")
+        # Model setup with actual parameters is echoed back
+        self.setup = process.communicate_model(
+            self.process, setup, model.ModelSetup
+        )
+        # Last image input
+        self.image = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, value, traceback):
+        self.close()
+
+    def trace(self, image: Optional[model.ImageInput] = None, **kwargs):
+        if image is None:
+            if not self.image:
+                raise RuntimeError(
+                    "Image specifications must be supplied for the first trace"
+                )
+            image = self.image
+        with NamedTemporaryFile(suffix=".bin", mode="w+b") as f:
+            inp = model.TraceInput(bin_file=Path(f.name), image=image, **kwargs)
+            trace = process.communicate_model(
+                self.process, inp, model.TraceOutput
+            )
+            img = f.read()
+        return (trace, img)
+
+    def close(self, timeout=0.25):
+        """Cleanly exit the ray trace loop, returning run statistics if possible."""
+        result = process.communicate(self.process, json.dumps(None))
+        try:
+            self.process.wait(timeout=timeout)
+        except TimeoutExpired:
+            pass
+        result = result or process.close(self.process, timeout)
+        try:
+            result = json.loads(result)
+        except json.JSONDecodeError:
+            pass
         return result
 
 
@@ -185,3 +249,6 @@ def load_and_plot_image(ax, out, image=None):
         cbar.ax.set_yticklabels(labels)
 
     return im
+
+
+_register_cmaps()
