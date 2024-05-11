@@ -4,52 +4,21 @@
 """Manage a Celeritas process asynchronously with communication."""
 
 import os
-import subprocess
+from subprocess import Popen, PIPE
 from typing import Optional, TypeVar
 from pydantic import BaseModel
 
 from .settings import settings
 
-# TODO: from signal import SIGINT, SIGTERM
-
-
-def communicate(process, line: str) -> Optional[str]:
-    """Write a line and read a line of response.
-
-    For this to work, the child application *must* write a single line of
-    text, ending in a newline, with nothing else, and flush immediately
-    afterward.
-
-    If the file has already closed, this will return None.
-
-    .. warning::
-       This method is susceptible to deadlock... so be careful!
-    """
-    assert not line.endswith("\n")
-    stdin = process.stdin
-    stdout = process.stdout
-    try:
-        stdin.write(line)
-        stdin.write("\n")
-        stdin.flush()
-        return stdout.readline()
-    except BrokenPipeError:
-        return None
+from signal import SIGINT, SIGTERM, SIGKILL
 
 
 M = TypeVar("M", bound=BaseModel)
-
-
-def communicate_model(process, model: BaseModel, expected_cls: type[M]) -> M:
-    """Communicate model to/from a process using JSON lines."""
-    result = communicate(process, model.model_dump_json())
-    if not result:
-        raise RuntimeError("Missing output from process")
-    return expected_cls.model_validate_json(result)
+P = TypeVar("P", bound=Popen)
 
 
 def launch(executable: str, *, env=None, **kwargs):
-    """Set up and launch a Celeritas process."""
+    """Set up and launch a Celeritas process with stdin/stdout pipes."""
     # Set up environment variables
     if env is None:
         env = os.environ.copy()
@@ -65,12 +34,57 @@ def launch(executable: str, *, env=None, **kwargs):
     # descriptors
     if settings.prefix_path is None:
         raise RuntimeError("Celeritas prefix path is not set")
-    return subprocess.Popen(
+    return Popen(
         [settings.prefix_path / "bin" / executable, "-"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
+        stdin=PIPE,
+        stdout=PIPE,
         bufsize=1,  # buffer by line
         text=True,
         env=env,
         **kwargs,
     )
+
+
+def close(process: P, timeout: Optional[float] = None):
+    """Cleanly close a process."""
+    if process.poll() is None:
+        for s in [SIGINT, SIGTERM, SIGKILL]:
+            print("Sending", s)
+            process.send_signal(s)
+            if process.wait(timeout=timeout) is not None:
+                break
+    if process.stdin:
+        process.stdin.close()
+    if process.stdout:
+        process.stdout.close()
+
+
+def communicate(process: P, line: str) -> Optional[str]:
+    """Write a line and read a line of response.
+
+    For this to work, the child application *must* write a single line of
+    text, ending in a newline, with nothing else, and flush immediately
+    afterward.
+
+    If the file has already closed, this will return None.
+
+    .. warning::
+       This method is susceptible to deadlock... so be careful!
+    """
+    assert not line.endswith("\n")
+    assert process.stdin and process.stdout
+    try:
+        process.stdin.write(line)
+        process.stdin.write("\n")
+        process.stdin.flush()
+        return process.stdout.readline()
+    except BrokenPipeError:
+        return None
+
+
+def communicate_model(process: P, model: BaseModel, expected_cls: type[M]) -> M:
+    """Communicate model to/from a process using JSON lines."""
+    result = communicate(process, model.model_dump_json())
+    if not result:
+        raise RuntimeError("Missing output from process")
+    return expected_cls.model_validate_json(result)

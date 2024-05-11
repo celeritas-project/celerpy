@@ -6,7 +6,8 @@ from pathlib import Path
 import json
 
 from celerpy.settings import settings
-from celerpy.process import launch, communicate
+from celerpy.process import launch, communicate, close
+import signal
 
 settings.prefix_path = Path(__file__).parent / "mock-prefix"
 
@@ -26,10 +27,10 @@ def test_manual():
     assert result == ["success", ["foo", "bar"]]
     result = communicate_json(p, None)
     assert result == "closing"
-    p.wait(timeout=0.5)
-    assert p.returncode == 0
-    p.stdout.close()
+    p.wait(timeout=5.0)  # should be instantaneous
     p.stdin.close()
+    p.stdout.close()
+    assert p.returncode == 0
     del p
 
 
@@ -45,6 +46,17 @@ def test_context():
         # process tries to write "closing" to `stdout`, but that pipe has
         # already been closed. I guess that also causes a BrokenPipeError in
         # the attached pipe in this process.
+    print("closed process")
+
+
+def test_close():
+    with launch("mock-process") as p:
+        result = communicate_json(p, "hello")
+        assert result == "success"
+        close(p)
+        p.wait(timeout=5.0)  # should be nearly instantaneous
+        assert p.returncode == signal.SIGINT
+
     print("closed process")
 
 
