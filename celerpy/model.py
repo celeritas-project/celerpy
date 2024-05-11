@@ -4,21 +4,39 @@
 """Manage models used for JSON I/O with Celeritas."""
 
 from typing import Annotated, Optional
-from pydantic import BaseModel, FilePath, NonNegativeInt, PositiveInt, conlist
+from pydantic import (
+    BaseModel,
+    FilePath,
+    NonNegativeInt,
+    PositiveInt,
+    conlist,
+    Field,
+    PositiveFloat,
+)
 from enum import Enum
 
 Real3 = Annotated[list, conlist(float, min_length=3, max_length=3)]
+Size2 = Annotated[list, conlist(PositiveInt, min_length=2, max_length=2)]
 
 
+# celer-geo/Types.hh
 class GeometryEngine(Enum):
     orange = "orange"
     vecgeom = "vecgeom"
     geant4 = "geant4"
 
 
+# corecel/Types.hh
 class MemSpace(Enum):
     host = "host"
     device = "device"
+
+
+# corecel/Types.hh
+class UnitSystem(Enum):
+    cgs = "cgs"
+    si = "si"
+    clhep = "clhep"
 
 
 # celer-geo/GeoInput.hh
@@ -45,6 +63,17 @@ class ImageInput(BaseModel):
     horizontal_divisor: Optional[PositiveInt] = None
 
 
-# informal:
+# geocel/rasterize/ImageData.hh: ImageParamsScalars
+class ImageParams(BaseModel):
+    origin: Real3
+    down: Real3
+    right: Real3
+    pixel_width: PositiveFloat
+    dims: Size2
+    units: UnitSystem = Field(serialization_alias="_units")
+
+
+# ad hoc: result from a 'trace' command
 class TraceOutput(BaseModel):
-    pass
+    trace: TraceSetup
+    image: ImageParams

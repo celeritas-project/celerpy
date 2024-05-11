@@ -12,6 +12,8 @@ class Settings(BaseSettings):
 
     Settings can be changed by setting environment variables such as
     ``CELER_PREFIX_PATH`` (case insensitive).
+
+    TODO: parse config file for default unit system, etc.
     """
 
     model_config = SettingsConfigDict(

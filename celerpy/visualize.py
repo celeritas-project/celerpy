@@ -73,7 +73,7 @@ class IdNorm(BoundaryNorm):
 
 class PlotDims:
     def __init__(self, md):
-        """Construct with image metadata"""
+        """Construct with image metadata."""
         self.down = np.array(md["down"])
         self.right = np.array(md["right"])
         pw = md["pixel_width"]
