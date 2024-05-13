@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from matplotlib.colors import ListedColormap, BoundaryNorm
+import collections
 import numpy as np
 import json
 import re
@@ -15,6 +16,9 @@ from tempfile import NamedTemporaryFile
 from subprocess import TimeoutExpired
 
 __all__ = ["CelerGeo"]
+
+
+_re_ptr = re.compile(r"0x[0-9a-f]+")
 
 
 def _register_cmaps():
@@ -31,6 +35,160 @@ def _register_cmaps():
     except ValueError as e:
         # Possibly duplicate?
         print(e)
+
+
+UNIT_LENGTH = {
+    model.UnitSystem.cgs: "cm",
+    model.UnitSystem.clhep: "mm",
+    model.UnitSystem.si: "m",
+}
+
+
+class CelerGeo:
+    """Manage a celer-geo process with input and output."""
+
+    volumes: dict[model.GeometryEngine, list[str]]
+    image: Optional[model.ImageInput]
+
+    @classmethod
+    def from_filename(cls, path: Path):
+        """Construct from a geometry filename and default other setup."""
+        return cls(model.ModelSetup(geometry_file=path))
+
+    def __init__(self, setup: model.ModelSetup):
+        # Create the process and attach stdin/stdout pipes
+        self.process = process.launch("celer-geo")
+        # Model setup with actual parameters is echoed back
+        self.setup = process.communicate_model(
+            self.process, setup, model.ModelSetup
+        )
+        # Cached volume names
+        self.volumes = {}
+        # Last image input
+        self.image = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, value, traceback):
+        self.close()
+
+    def trace(
+        self,
+        image: Optional[model.ImageInput] = None,
+        geometry: Optional[model.GeometryEngine] = None,
+        memspace: Optional[model.MemSpace] = None,
+        **kwargs,
+    ):
+        """Trace with a geometry, memspace, etc."""
+        if image is None:
+            if not self.image:
+                raise RuntimeError(
+                    "Image specifications must be supplied for the first trace"
+                )
+            image = self.image
+
+        # Determine whether to request the list of volumes for this geometry
+        volumes = None
+        if geometry is not None:
+            volumes = self.volumes.setdefault(geometry, [])
+
+        with NamedTemporaryFile(suffix=".bin", mode="w+b") as f:
+            inp = model.TraceInput(
+                geometry=geometry,
+                memspace=memspace,
+                volumes=(not volumes),
+                bin_file=Path(f.name),
+                image=image,
+                **kwargs,
+            )
+            result = process.communicate_model(
+                self.process, inp, model.TraceOutput
+            )
+            img = f.read()
+
+        # Cache the geometry names and ensure trace has them
+        if geometry is None:
+            geometry = result.trace.geometry
+            assert geometry is not None
+            volumes = self.volumes.setdefault(geometry, [])
+        if not volumes:
+            assert isinstance(volumes, list)
+            assert result.volumes
+            # XXX : erase pointer names (for now?)
+            volumes[:] = [_re_ptr.sub("", v) for v in result.volumes]
+        else:
+            result.volumes = volumes
+
+        # Cache the last run image
+        self.image = image
+
+        return (result, img)
+
+    def close(self, *, timeout=0.25):
+        """Cleanly exit the ray trace loop, returning run statistics if possible."""
+        result = process.communicate(self.process, json.dumps(None))
+        try:
+            self.process.wait(timeout=timeout)
+        except TimeoutExpired:
+            pass
+        result = result or process.close(self.process, timeout=timeout)
+        try:
+            result = json.loads(result)
+        except json.JSONDecodeError:
+            pass
+        return result
+
+
+class ReverseIndexDict(collections.defaultdict):
+    """Manage a two-way mapping of integers and another type."""
+
+    def __init__(self, volume_list):
+        self.vlist = volume_list
+
+    def __missing__(self, key):
+        self[key] = result = len(self)
+        self.vlist.append(key)
+        assert len(self.vlist) == len(self)
+        return result
+
+
+class IdMapper:
+    """Map volume names to sequential indices.
+
+    This is so that colors can be rendered consistently across
+    geometry engines that have different IDs (or ID ordering) for the same
+    volume names, and so the colors will stay consistent if the image is moved
+    (so that new volumes "appear").
+    """
+
+    def __init__(self):
+        self.id_to_volume = []
+        self.volume_to_id = ReverseIndexDict(self.id_to_volume)
+
+    def __call__(self, image, volumes: list[str]):
+        # Get unique list of geometry-specific volume IDs
+        ids = np.unique(image)
+        sentinels = []
+        if ids[0] == -1:
+            sentinels.append(ids[0])
+            ids = ids[1:]
+        assert ids.size == 0 or ids[-1] < len(volumes)
+
+        # Map local IDs -> volumes -> resulting IDs
+        local_id_map = np.empty_like(volumes, dtype=np.int32)
+        local_id_map[:] = -1
+        for i in ids:
+            local_id_map[i] = self.volume_to_id[volumes[i]]
+
+        mask = (image == sentinels[0]) if sentinels else None
+
+        # Remap from old IDs to new, ignoring invalid values
+        image = local_id_map[image]
+        if mask is not None:
+            image = np.ma.array(image, mask=mask)
+
+        return (image, self.id_to_volume)
 
 
 class IdNorm(BoundaryNorm):
@@ -79,176 +237,6 @@ class IdNorm(BoundaryNorm):
         result = self.ids_to_idx[value]
         result = np.ma.array(result, mask=mask)
         return result
-
-
-class CelerGeo:
-    """Manage a celer-geo process with input and output."""
-
-    @classmethod
-    def from_filename(cls, path: Path):
-        """Construct from a geometry filename and default other setup."""
-        return cls(model.ModelSetup(geometry_file=path))
-
-    def __init__(self, setup: model.ModelSetup):
-        # Create the process and attach stdin/stdout pipes
-        self.process = process.launch("celer-geo")
-        # Model setup with actual parameters is echoed back
-        self.setup = process.communicate_model(
-            self.process, setup, model.ModelSetup
-        )
-        # Last image input
-        self.image = None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, value, traceback):
-        self.close()
-
-    def trace(self, image: Optional[model.ImageInput] = None, **kwargs):
-        if image is None:
-            if not self.image:
-                raise RuntimeError(
-                    "Image specifications must be supplied for the first trace"
-                )
-            image = self.image
-        with NamedTemporaryFile(suffix=".bin", mode="w+b") as f:
-            inp = model.TraceInput(bin_file=Path(f.name), image=image, **kwargs)
-            trace = process.communicate_model(
-                self.process, inp, model.TraceOutput
-            )
-            img = f.read()
-        return (trace, img)
-
-    def close(self, timeout=0.25):
-        """Cleanly exit the ray trace loop, returning run statistics if possible."""
-        result = process.communicate(self.process, json.dumps(None))
-        try:
-            self.process.wait(timeout=timeout)
-        except TimeoutExpired:
-            pass
-        result = result or process.close(self.process, timeout)
-        try:
-            result = json.loads(result)
-        except json.JSONDecodeError:
-            pass
-        return result
-
-
-class PlotDims:
-    def __init__(self, md):
-        """Construct with image metadata."""
-        self.down = np.array(md["down"])
-        self.right = np.array(md["right"])
-        pw = md["pixel_width"]
-        dims = md["dims"]
-        self.upper_left = md["origin"]
-        self.width = pw * dims[1]
-        self.height = pw * dims[0]
-        self.units = {
-            "cgs": "cm",
-            "clhep": "mm",
-            "si": "m",
-        }[md["_units"]]
-
-        self.lower_left = self.down * self.height + self.upper_left
-
-    def calc_axes(self, length, dir):
-        for d, dimname in enumerate("xyz"):
-            if 1 - abs(dir[d]) < 1e-6:
-                lower = self.lower_left[d]
-                upper = lower + length * dir[d]
-                label = f"{dimname} [{self.units}]"
-                break
-        else:
-            # No orthogonal axis found
-            label = "Position along ({}) from {} [{}]".format(
-                ",".join("{:.3f}".format(v if v != 0 else 0) for v in dir),
-                self.lower_left,
-                self.units,
-            )
-            (lower, upper) = (0, length)
-        return (label, lower, upper)
-
-
-def get_ids_and_sentinels(image):
-    ids = np.unique(image)
-    sentinels = []
-    if ids[0] == -1:
-        sentinels.append(ids[0])
-        ids = ids[1:]
-    return (ids, sentinels)
-
-
-_re_ptr = re.compile(r"0x[0-9a-f]+")
-
-
-def remap_ids(ids, volumes=None):
-    """Create a set of unique volume names and corresponding ID map."""
-    if volumes is None:
-        volumes = [str(i) for i in range(np.max(ids))]
-    new_ids = np.empty_like(volumes, dtype=np.int32)
-    new_ids[:] = -1
-
-    uvolumes = {}
-    for i in ids:
-        v = _re_ptr.sub("", volumes[i])
-        new_id = uvolumes.setdefault(v, len(uvolumes))
-        new_ids[i] = new_id
-
-    vol_names = [None] * len(uvolumes)
-    for k, v in uvolumes.items():
-        vol_names[v] = k
-
-    return (new_ids, vol_names)
-
-
-def load_and_plot_image(ax, out, image=None):
-    assert out["sizeof_int"] == 4
-    if image is None:
-        image = np.fromfile(out["trace"]["bin_file"], dtype=np.int32)
-    elif isinstance(image, bytes):
-        image = np.frombuffer(image, dtype=np.int32)
-    image = np.reshape(image, out["image"]["dims"])
-    dims = PlotDims(out["image"])
-
-    (label, left, right) = dims.calc_axes(dims.width, dims.right)
-    ax.set_xlabel(label)
-    ax.set_xlim([left, right])
-    (label, lower, upper) = dims.calc_axes(dims.height, -dims.down)
-    ax.set_ylabel(label)
-    ax.set_ylim([lower, upper])
-
-    # Get unique set of IDs inside the raytraced image
-    (ids, sentinels) = get_ids_and_sentinels(image)
-
-    (new_ids, labels) = remap_ids(ids, out.get("volumes"))
-
-    if sentinels:
-        image = np.ma.masked_where((image == sentinels[0]), image)
-    # Remap from old IDs to new, ignoring invalid values
-    image = new_ids[image]
-
-    norm = IdNorm(np.arange(len(labels)))
-    im = ax.imshow(
-        image,
-        extent=[left, right, lower, upper],
-        interpolation="none",
-        norm=norm,
-        cmap="glasbey_light",
-    )
-
-    if len(ids) < 128:
-        # Create colorbar
-        bounds = norm.boundaries
-        ticks = bounds[:-1] + np.diff(bounds) / 2
-        fig = ax.get_figure()
-        cbar = fig.colorbar(im, ticks=ticks)
-
-        # Build labels
-        cbar.ax.set_yticklabels(labels)
-
-    return im
 
 
 _register_cmaps()

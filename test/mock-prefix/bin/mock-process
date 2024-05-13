@@ -5,35 +5,10 @@
 """Mock a 'JSON lines' style process.
 
 """
-import json
-import signal
+from mockutils import log, dump, read_input, setup_signals
 import sys
 
-def log(*args):
-    print("<child>", *args, file=sys.stderr, flush=True)
-
-def dump(obj, file=sys.stdout):
-    try:
-        json.dump(obj, file)
-        file.write('\n')
-        file.flush()
-    except BrokenPipeError as e:
-        log(e)
-
-def terminate(signum, frame):
-    log("caught signal", signum)
-    dump("terminating")
-    sys.exit(signum)
-
-def read_input():
-    try:
-        return json.loads(input())
-    except EOFError:
-        log("EOF during input read")
-        return None
-
-signal.signal(signal.SIGINT, terminate)
-signal.signal(signal.SIGTERM, terminate)
+setup_signals()
 
 cmd = input()
 log("read command", repr(cmd))

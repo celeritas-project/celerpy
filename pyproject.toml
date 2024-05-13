@@ -36,6 +36,12 @@ dev = [
 [project.scripts]
 celerpy = "celerpy.cli:app"
 
+[tool.mypy]
+plugins = [
+  "numpy.typing.mypy_plugin",
+  "pydantic.mypy"
+]
+
 [tool.ruff]
 exclude = [".venv", "./celerpy/_version.py"]
 line-length = 80

@@ -77,13 +77,16 @@ def communicate(process: P, line: str) -> Optional[str]:
     """
     assert not line.endswith("\n")
     assert process.stdin and process.stdout
+    # print("send(", repr(line), ")")
     try:
         if not process.stdin.closed:
             process.stdin.write(line)
             process.stdin.write("\n")
             process.stdin.flush()
         if not process.stdout.closed:
-            return process.stdout.readline()
+            result = process.stdout.readline()
+            # print("recv(", repr(result), ")")
+            return result
     except BrokenPipeError:
         pass
 

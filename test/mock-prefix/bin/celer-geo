@@ -1,0 +1,50 @@
+#!/usr/bin/env python -Werror
+# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+"""Mock the celer-geo process.
+"""
+from mockutils import log, dump, read_input, setup_signals
+import numpy as np
+import json
+import sys
+
+setup_signals()
+
+def expect_trace(expected_inp, expected_outp):
+    expected_inp = json.loads(expected_inp)
+    expected_outp = json.loads(expected_outp)
+    log("expecting input...")
+    inp = read_input()
+    if inp is None:
+        log("exiting early due to missing input")
+        sys.exit(1)
+    log("...read input")
+    bin_file = inp.pop('bin_file')
+    assert inp == expected_inp
+    with open(bin_file, 'wb') as f:
+        f.write(np.zeros([4, 4], dtype=np.int32).tobytes())
+
+    log("writing output...")
+    expected_outp['trace']['bin_file'] = bin_file
+    dump(expected_outp)
+
+cmd = read_input()
+log("read model", repr(cmd))
+assert cmd['geometry_file']
+dump(cmd)
+
+log("entering loop")
+expect_trace(
+'{"geometry":"orange","memspace":null,"volumes":true,"image":{"lower_left":[0,0,0],"upper_right":[1,1,0],"rightward":[1,0,0],"vertical_pixels":4,"horizontal_divisor":null}}'
+,'{"image":{"_units":"cgs","dims":[4,4],"down":[0.0,-1.0,0.0],"origin":[0.0,1.0,0.0],"pixel_width":0.25,"right":[1.0,0.0,0.0]},"sizeof_int":4,"trace":{"geometry":"orange","memspace":"host","volumes":true},"volumes":["[EXTERIOR]","inner","world"]}\n' )
+expect_trace(
+'{"geometry":"orange","memspace":null,"volumes":false,"image":{"lower_left":[0,0,0],"upper_right":[1,1,0],"rightward":[1,0,0],"vertical_pixels":4,"horizontal_divisor":null}}'
+,'{"image":{"_units":"cgs","dims":[4,4],"down":[0.0,-1.0,0.0],"origin":[0.0,1.0,0.0],"pixel_width":0.25,"right":[1.0,0.0,0.0]},"sizeof_int":4,"trace":{"geometry":"orange","memspace":"host","volumes":false}}\n' )
+expect_trace(
+'{"geometry":"geant4","memspace":null,"volumes":true,"image":{"lower_left":[0,0,0],"upper_right":[1,1,0],"rightward":[1,0,0],"vertical_pixels":4,"horizontal_divisor":null}}'
+,'{"image":{"_units":"cgs","dims":[4,4],"down":[0.0,-1.0,0.0],"origin":[0.0,1.0,0.0],"pixel_width":0.25,"right":[1.0,0.0,0.0]},"sizeof_int":4,"trace":{"geometry":"geant4","memspace":"host","volumes":true},"volumes":["inner","world"]}\n' )
+
+cmd = read_input()
+assert cmd == None
+dump({"runtime":{"device":None,"kernels":[],"version":"0.5.0-dev"},"timers":{"load_geant4":0.1,"load_orange":0.2,"raytrace_geant4_host":0.3,"raytrace_orange_host":0.4}})

@@ -83,5 +83,5 @@ class TraceInput(TraceSetup):
 class TraceOutput(BaseModel):
     trace: TraceSetup
     image: ImageParams
-    volumes: Optional[List[str]]
+    volumes: Optional[List[str]] = None
     sizeof_int: PositiveInt
