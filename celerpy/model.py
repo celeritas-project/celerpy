@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Manage models used for JSON I/O with Celeritas."""
 
-from typing import Annotated, Optional, List
+from typing import Annotated, Optional, List, Literal
 from pydantic import (
     BaseModel,
     FilePath,
@@ -85,3 +85,14 @@ class TraceOutput(BaseModel):
     image: ImageParams
     volumes: Optional[List[str]] = None
     sizeof_int: PositiveInt
+
+
+class ExceptionDump(BaseModel):
+    _category: Literal["result"]
+    _label: Literal["exception"]
+    type: str
+    condition: Optional[str] = None
+    file: Optional[str] = None
+    line: Optional[int] = None
+    which: Optional[str] = None
+    context: Optional["ExceptionDump"] = None

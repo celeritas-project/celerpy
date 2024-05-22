@@ -26,13 +26,14 @@ def test_CelerGeo():
             geometry=model.GeometryEngine.orange,
         )
         assert isinstance(result, model.TraceOutput)
-        assert len(img) == 16 * result.sizeof_int
+        assert img.shape == (4, 4)
+        assert img.dtype == np.int32
         (result, img) = cg.trace(geometry=model.GeometryEngine.orange)
         assert isinstance(result, model.TraceOutput)
-        assert len(img) == 16 * result.sizeof_int
+        assert img.shape == (4, 4)
         (result, img) = cg.trace(geometry=model.GeometryEngine.geant4)
         assert isinstance(result, model.TraceOutput)
-        assert len(img) == 16 * result.sizeof_int
+        assert img.shape == (4, 4)
         result = cg.close()
         assert result
 

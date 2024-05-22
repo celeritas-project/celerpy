@@ -8,6 +8,7 @@ from subprocess import Popen, PIPE, TimeoutExpired
 from typing import Optional, TypeVar
 from pydantic import BaseModel, ValidationError
 
+from .model import ExceptionDump
 from .settings import settings
 
 from signal import SIGINT, SIGTERM, SIGKILL
@@ -93,14 +94,32 @@ def communicate(process: P, line: str) -> Optional[str]:
     return None
 
 
+class CeleritasError(Exception):
+    """Error sent from Celeritas C++ encoded as a JSON line."""
+
+    def __init__(self, e: ExceptionDump):
+        self.err = e
+
+    def __str__(self):
+        return str(self.err)
+
+
 def communicate_model(process: P, model: BaseModel, expected_cls: type[M]) -> M:
     """Communicate model to/from a process using JSON lines."""
     result = communicate(process, model.model_dump_json())
     if not result:
+        if process.poll() is not None:
+            raise RuntimeError("Process exited with code", process.returncode)
         raise RuntimeError("Missing output from process")
     try:
         return expected_cls.model_validate_json(result)
     except ValidationError:
-        raise RuntimeError(
-            f"Failed to validate code output as {expected_cls!r}: {result}"
-        )
+        # Try loading as an exception
+        try:
+            err = ExceptionDump.model_validate_json(result)
+        except ValidationError:
+            pass
+        else:
+            raise CeleritasError(err) from None
+
+        raise

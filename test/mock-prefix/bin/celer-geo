@@ -21,7 +21,9 @@ def expect_trace(expected_inp, expected_outp):
         sys.exit(1)
     log("...read input")
     bin_file = inp.pop('bin_file')
-    assert inp == expected_inp
+    if inp != expected_inp:
+        raise RuntimeError("Unexpected output: got {!r}".format(json.dumps(inp)))
+
     with open(bin_file, 'wb') as f:
         f.write(np.zeros([4, 4], dtype=np.int32).tobytes())
 
@@ -39,10 +41,10 @@ expect_trace(
 '{"geometry":"orange","memspace":null,"volumes":true,"image":{"lower_left":[0,0,0],"upper_right":[1,1,0],"rightward":[1,0,0],"vertical_pixels":4,"horizontal_divisor":null}}'
 ,'{"image":{"_units":"cgs","dims":[4,4],"down":[0.0,-1.0,0.0],"origin":[0.0,1.0,0.0],"pixel_width":0.25,"right":[1.0,0.0,0.0]},"sizeof_int":4,"trace":{"geometry":"orange","memspace":"host","volumes":true},"volumes":["[EXTERIOR]","inner","world"]}\n' )
 expect_trace(
-'{"geometry":"orange","memspace":null,"volumes":false,"image":{"lower_left":[0,0,0],"upper_right":[1,1,0],"rightward":[1,0,0],"vertical_pixels":4,"horizontal_divisor":null}}'
+'{"geometry": "orange", "memspace": null, "volumes": false, "image": null}'
 ,'{"image":{"_units":"cgs","dims":[4,4],"down":[0.0,-1.0,0.0],"origin":[0.0,1.0,0.0],"pixel_width":0.25,"right":[1.0,0.0,0.0]},"sizeof_int":4,"trace":{"geometry":"orange","memspace":"host","volumes":false}}\n' )
 expect_trace(
-'{"geometry":"geant4","memspace":null,"volumes":true,"image":{"lower_left":[0,0,0],"upper_right":[1,1,0],"rightward":[1,0,0],"vertical_pixels":4,"horizontal_divisor":null}}'
+'{"geometry":"geant4","memspace":null,"volumes":true,"image":null}'
 ,'{"image":{"_units":"cgs","dims":[4,4],"down":[0.0,-1.0,0.0],"origin":[0.0,1.0,0.0],"pixel_width":0.25,"right":[1.0,0.0,0.0]},"sizeof_int":4,"trace":{"geometry":"geant4","memspace":"host","volumes":true},"volumes":["inner","world"]}\n' )
 
 cmd = read_input()
