@@ -6,6 +6,11 @@ import sys
 import json
 import signal
 
+if not sys.warnoptions:
+    import warnings
+
+    warnings.simplefilter("error")
+
 
 def log(*args):
     print("<child>", *args, file=sys.stderr, flush=True)

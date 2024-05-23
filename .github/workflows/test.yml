@@ -9,7 +9,6 @@ concurrency:
 
 env:
   COLUMNS: 100
-  PYTHONWARNINGS: error
 
 jobs:
   test:
