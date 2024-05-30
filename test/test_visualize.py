@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # from matplotlib import pyplot as plt
-import numpy as np
-import pytest
-from celerpy import visualize, model
-from numpy.testing import assert_array_equal
-
 from pathlib import Path
 
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
+
+from celerpy import model, visualize
 from celerpy.settings import settings
 
 local_path = Path(__file__).parent

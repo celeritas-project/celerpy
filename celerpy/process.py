@@ -4,15 +4,14 @@
 """Manage a Celeritas process asynchronously with communication."""
 
 import os
-from subprocess import Popen, PIPE, TimeoutExpired
+from signal import SIGINT, SIGKILL, SIGTERM
+from subprocess import PIPE, Popen, TimeoutExpired
 from typing import Optional, TypeVar
+
 from pydantic import BaseModel, ValidationError
 
 from .model import ExceptionDump
 from .settings import settings
-
-from signal import SIGINT, SIGTERM, SIGKILL
-
 
 M = TypeVar("M", bound=BaseModel)
 P = TypeVar("P", bound=Popen)

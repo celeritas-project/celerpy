@@ -1,9 +1,10 @@
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import DirectoryPath, Field
 from typing import Optional
+
+from pydantic import DirectoryPath, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Annotated
 
 

@@ -2,12 +2,12 @@
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-from pathlib import Path
 import json
-
-from celerpy.settings import settings
-from celerpy.process import launch, communicate, close
 import signal
+from pathlib import Path
+
+from celerpy.process import close, communicate, launch
+from celerpy.settings import settings
 
 settings.prefix_path = Path(__file__).parent / "mock-prefix"
 

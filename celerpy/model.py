@@ -3,17 +3,18 @@
 # SPDX-License-Identifier: Apache-2.0
 """Manage models used for JSON I/O with Celeritas."""
 
-from typing import Annotated, Optional, List, Literal
+from enum import Enum
+from typing import Annotated, List, Literal, Optional
+
 from pydantic import (
     BaseModel,
+    Field,
     FilePath,
     NonNegativeInt,
+    PositiveFloat,
     PositiveInt,
     conlist,
-    Field,
-    PositiveFloat,
 )
-from enum import Enum
 
 Real3 = Annotated[list, conlist(float, min_length=3, max_length=3)]
 Size2 = Annotated[list, conlist(PositiveInt, min_length=2, max_length=2)]

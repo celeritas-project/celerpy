@@ -2,18 +2,19 @@
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-from matplotlib.colors import ListedColormap, BoundaryNorm
 import collections
-import numpy as np
+import contextlib
 import json
 import re
-from typing import Optional
-from . import model
-from . import process
 from pathlib import Path
-
-from tempfile import NamedTemporaryFile
 from subprocess import TimeoutExpired
+from tempfile import NamedTemporaryFile
+from typing import Optional
+
+import numpy as np
+from matplotlib.colors import BoundaryNorm, ListedColormap
+
+from . import model, process
 
 __all__ = ["CelerGeo"]
 
@@ -23,6 +24,7 @@ _re_ptr = re.compile(r"0x[0-9a-f]+")
 
 def _register_cmaps():
     from importlib.resources import files
+
     from matplotlib import colormaps
 
     resources = files("celerpy._resources")
@@ -175,17 +177,15 @@ class CelerGeo:
         return (result, npimg)
 
     def close(self, *, timeout=0.25):
-        """Cleanly exit the ray trace loop, returning run statistics if possible."""
+        """Cleanly exit the ray trace loop, returning run statistics if
+        possible."""
         result = process.communicate(self.process, json.dumps(None))
-        try:
+        with contextlib.suppress(TimeoutExpired):
             self.process.wait(timeout=timeout)
-        except TimeoutExpired:
-            pass
+
         result = result or process.close(self.process, timeout=timeout)
-        try:
+        with contextlib.suppress(json.JSONDecodeError):
             result = json.loads(result)
-        except json.JSONDecodeError:
-            pass
         return result
 
 
@@ -274,7 +274,7 @@ def calc_image_axes(image: model.ImageParams):
         else:
             # No orthogonal axis found
             label = "Position along ({}) from {} [{}]".format(
-                ",".join("{:.3f}".format(v if v != 0 else 0) for v in dir),
+                ",".join(f"{v if v != 0 else 0:.3f}" for v in dir),
                 lower_left,
                 units,
             )
@@ -311,11 +311,8 @@ class Imager:
         ax.set_xlim([x.lo, x.hi])
         ax.set_ylabel(y.label)
         ax.set_ylim([y.lo, y.hi])
-        ax.set_title(
-            "{to.trace.geometry.name} ({to.trace.memspace.name})".format(
-                to=trace_output
-            )
-        )
+        tr = trace_output.trace
+        ax.set_title(f"{tr.geometry.name} ({tr.memspace.name})")
 
         # Remap volume IDs and volume names into a persistent 0-based list
         (img, volumes) = self.celer_geo.map_ids(img, trace_output.volumes)
