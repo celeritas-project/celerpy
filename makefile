@@ -53,14 +53,14 @@ pre-commit: $(BUILD_DIR)
 # Formatting
 #
 .PHONY: style
-style: style/ruff style/black style/dapperdata style/tomlsort
+style: style/check style/format style/dapperdata style/tomlsort
 
-.PHONY: style/ruff
-style/ruff:
+.PHONY: style/check
+style/check:
 	$(PYTHON) -m ruff check . --fix
 
-.PHONY: style/black
-style/black:
+.PHONY: style/format
+style/format:
 	$(PYTHON) -m ruff format .
 
 .PHONY: style/dapperdata
