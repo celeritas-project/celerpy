@@ -73,6 +73,9 @@ class ImageParams(BaseModel):
     dims: Size2
     units: UnitSystem = Field(alias="_units")
 
+    # TODO: max length is not used or returned by celer-geo
+    # max_length: float
+
 
 # ad hoc: input to a 'trace' command
 class TraceInput(TraceSetup):

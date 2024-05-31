@@ -6,12 +6,16 @@ import collections
 import contextlib
 import json
 import re
+import warnings
+from collections.abc import MutableSequence
+from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
+from matplotlib import colormaps
 from matplotlib.colors import BoundaryNorm, ListedColormap
 
 from . import model, process
@@ -23,10 +27,6 @@ _re_ptr = re.compile(r"0x[0-9a-f]+")
 
 
 def _register_cmaps():
-    from importlib.resources import files
-
-    from matplotlib import colormaps
-
     resources = files("celerpy._resources")
     cmap = ListedColormap(
         np.loadtxt(resources.joinpath("glasbey-light.txt")),
@@ -35,8 +35,7 @@ def _register_cmaps():
     try:
         colormaps.register(cmap)
     except ValueError as e:
-        # Possibly duplicate?
-        print(e)
+        warnings.warn(f"Failed to add colormap: {e!s}", stacklevel=0)
 
 
 UNIT_LENGTH = {
@@ -73,8 +72,7 @@ class IdMapper:
         assert ids.size == 0 or ids[-1] < len(volumes)
 
         # Map local IDs -> volumes -> resulting IDs
-        local_id_map = np.empty_like(volumes, dtype=np.int32)
-        local_id_map[:] = -1
+        local_id_map = np.full_like(volumes, -1, dtype=np.int32)
         for i in ids:
             local_id_map[i] = self.volume_to_id[volumes[i]]
 
@@ -105,7 +103,7 @@ class CelerGeo:
 
     def __init__(self, setup: model.ModelSetup):
         # Create the process and attach stdin/stdout pipes
-        self.process = process.launch("celer-geo")
+        self.process: process.Popen = process.launch("celer-geo")
         # Model setup with actual parameters is echoed back
         self.setup = process.communicate_model(
             self.process, setup, model.ModelSetup
@@ -176,7 +174,7 @@ class CelerGeo:
 
         return (result, npimg)
 
-    def close(self, *, timeout=0.25):
+    def close(self, *, timeout: float = 0.25):
         """Cleanly exit the ray trace loop, returning run statistics if
         possible."""
         result = process.communicate(self.process, json.dumps(None))
@@ -192,10 +190,11 @@ class CelerGeo:
 class ReverseIndexDict(collections.defaultdict):
     """Manage a two-way mapping of integers and another type."""
 
-    def __init__(self, volume_list):
+    def __init__(self, volume_list: MutableSequence[str]):
+        """Note that the given list is retained and mutated."""
         self.vlist = volume_list
 
-    def __missing__(self, key):
+    def __missing__(self, key: str):
         self[key] = result = len(self)
         self.vlist.append(key)
         assert len(self.vlist) == len(self)
@@ -216,9 +215,9 @@ class IdNorm(BoundaryNorm):
     # Note: we inherit from BoundaryNorm because there's some special-casing
     # in ColorBar and possibly elsewhere
 
-    def __init__(self, ids):
-        """Give a list of unique IDs that will be remapped to their position in
-        this list.
+    def __init__(self, ids: np.ndarray[Any, np.dtype[np.integer]]):
+        """Give a list of unique IDs ("matids") that will be remapped to their
+        position in this list.
         """
         assert ids.size > 0
         fltids = np.array(ids, dtype=float)
@@ -228,8 +227,8 @@ class IdNorm(BoundaryNorm):
         self.vmax = ids[-1]
 
         # Remap matids to ID index: array up to the last valid matid.
-        ids_to_idx = np.zeros((ids[-1] + 1), dtype=np.int16)
-        ids_to_idx[ids] = np.arange(len(ids), dtype=np.int16)
+        ids_to_idx = np.zeros((ids[-1] + 1), dtype=np.int32)
+        ids_to_idx[ids] = np.arange(len(ids), dtype=np.int32)
         self.ids_to_idx = ids_to_idx
 
     def __call__(self, value, clip=None):
@@ -239,14 +238,14 @@ class IdNorm(BoundaryNorm):
         class's implementation of __call__.
         """
         if not np.issubdtype(value.dtype, np.integer):
-            # When rendering color bars, matplotlib passes an array of
-            # floating-point midpoint values. Let the base class logic (slower
-            # but compatible with the colorbar mechanics) handle it.
+            # When rendering color bars, as opposed to *images*, matplotlib
+            # passes an array of floating-point midpoint values. Let the base
+            # class logic (slower but compatible with the colorbar mechanics)
+            # handle it.
             return super().__call__(value, clip)
 
         mask = np.ma.getmaskarray(value)
         invalid = value >= self.ids_to_idx.size
-        value[invalid] = 0
         mask |= invalid
 
         result = self.ids_to_idx[value]

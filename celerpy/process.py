@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Manage a Celeritas process asynchronously with communication."""
 
+import contextlib
 import os
 from signal import SIGINT, SIGKILL, SIGTERM
 from subprocess import PIPE, Popen, TimeoutExpired
@@ -17,7 +18,7 @@ M = TypeVar("M", bound=BaseModel)
 P = TypeVar("P", bound=Popen)
 
 
-def launch(executable: str, *, env=None, **kwargs):
+def launch(executable: str, *, env=None, **kwargs) -> Popen:
     """Set up and launch a Celeritas process with stdin/stdout pipes."""
     # Set up environment variables
     if env is None:
@@ -45,7 +46,7 @@ def launch(executable: str, *, env=None, **kwargs):
     )
 
 
-def close(process: P, *, timeout: Optional[float] = 0.1):
+def close(process: P, *, timeout: float = 0.1):
     """Cleanly close a process."""
     if process.poll() is None:
         for s in [SIGINT, SIGTERM, SIGKILL]:
@@ -77,18 +78,13 @@ def communicate(process: P, line: str) -> Optional[str]:
     """
     assert not line.endswith("\n")
     assert process.stdin and process.stdout
-    # print("send(", repr(line), ")")
-    try:
+    with contextlib.suppress(BrokenPipeError):
         if not process.stdin.closed:
             process.stdin.write(line)
             process.stdin.write("\n")
             process.stdin.flush()
         if not process.stdout.closed:
-            result = process.stdout.readline()
-            # print("recv(", repr(result), ")")
-            return result
-    except BrokenPipeError:
-        pass
+            return process.stdout.readline()
 
     return None
 
