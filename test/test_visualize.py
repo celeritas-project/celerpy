@@ -2,7 +2,6 @@
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# from matplotlib import pyplot as plt
 from pathlib import Path
 
 import numpy as np

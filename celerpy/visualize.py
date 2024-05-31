@@ -205,7 +205,7 @@ LabeledAxis = collections.namedtuple("LabeledAxis", ["label", "lo", "hi"])
 LabeledAxes = collections.namedtuple("LabeledAxes", ["x", "y"])
 
 
-def calc_image_axes(image: model.ImageParams):
+def calc_image_axes(image: model.ImageParams) -> LabeledAxes:
     """Calculate label/min/max for x and y axes from an image result."""
     down = np.array(image.down)
     right = np.array(image.right)
