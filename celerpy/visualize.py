@@ -7,20 +7,21 @@ import contextlib
 import json
 import re
 import warnings
-from collections.abc import MutableSequence
+from collections.abc import Mapping, MutableSequence
 from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Optional
+from typing import Any, Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colormaps
 from matplotlib.colors import BoundaryNorm, ListedColormap
 
 from . import model, process
 
-__all__ = ["CelerGeo"]
+__all__ = ["CelerGeo", "Imager", "plot_all_geometry"]
 
 
 _re_ptr = re.compile(r"0x[0-9a-f]+")
@@ -295,6 +296,33 @@ class Imager:
             cbar.ax.set_yticklabels(volumes)
 
         return im
+
+
+def plot_all_geometry(
+    trace_image: Imager, *, colorbar=True, figsize=None
+) -> Mapping[model.GeometryEngine, Any]:
+    """Convenience function for plotting all available geometry types."""
+    width_ratios = [1.0] * len(model.GeometryEngine)
+    if colorbar:
+        width_ratios.append(0.1)
+
+    (fig, axx) = plt.subplots(
+        ncols=len(width_ratios),
+        layout="constrained",
+        figsize=figsize,
+        gridspec_kw=dict(width_ratios=width_ratios),
+    )
+    result = {}
+    cbar: list[Any] = [False] * len(model.GeometryEngine)
+    if colorbar:
+        cbar[:0] = [axx[-1]]
+
+    for g, ax, cb in zip(model.GeometryEngine, axx, cbar):
+        try:
+            result[g] = trace_image(ax, geometry=g, colorbar=cb)
+        except Exception as e:
+            warnings.warn(f"Failed to trace {g} geometry: {e!s}", stacklevel=0)
+    return result
 
 
 _register_cmaps()
