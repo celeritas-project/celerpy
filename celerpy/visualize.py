@@ -36,7 +36,7 @@ def _register_cmaps():
     try:
         colormaps.register(cmap)
     except ValueError as e:
-        warnings.warn(f"Failed to add colormap: {e!s}", stacklevel=0)
+        warnings.warn(f"Failed to add colormap: {e!s}", stacklevel=1)
 
 
 UNIT_LENGTH = {
@@ -121,6 +121,14 @@ class CelerGeo:
 
     def __exit__(self, exc_type, value, traceback):
         self.close()
+
+    def __del__(self):
+        if self.process.poll() is None:
+            warnings.warn(
+                f"Killing context-free celer-geo process {self.process.pid}",
+                stacklevel=1,
+            )
+            self.process.kill()
 
     def reset_id_map(self):
         self.map_ids.clear()
@@ -321,7 +329,7 @@ def plot_all_geometry(
         try:
             result[g] = trace_image(ax, geometry=g, colorbar=cb)
         except Exception as e:
-            warnings.warn(f"Failed to trace {g} geometry: {e!s}", stacklevel=0)
+            warnings.warn(f"Failed to trace {g} geometry: {e!s}", stacklevel=1)
     return result
 
 
