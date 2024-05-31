@@ -12,7 +12,7 @@ from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Any, Optional
+from typing import Optional
 
 import numpy as np
 from matplotlib import colormaps
@@ -205,54 +205,6 @@ LabeledAxis = collections.namedtuple("LabeledAxis", ["label", "lo", "hi"])
 LabeledAxes = collections.namedtuple("LabeledAxes", ["x", "y"])
 
 
-class IdNorm(BoundaryNorm):
-    """Map IDs to consecutive integers for rendering.
-
-    This provides literally a factor of 1000 speedup over using BoundaryNorm
-    (when trying to plot an image with 3k compositions).
-    """
-
-    # Note: we inherit from BoundaryNorm because there's some special-casing
-    # in ColorBar and possibly elsewhere
-
-    def __init__(self, ids: np.ndarray[Any, np.dtype[np.integer]]):
-        """Give a list of unique IDs ("matids") that will be remapped to their
-        position in this list.
-        """
-        assert ids.size > 0
-        fltids = np.array(ids, dtype=float)
-        bounds = np.concatenate([fltids - 0.5, [fltids[-1] + 0.5]])
-        super().__init__(bounds, len(bounds) - 1, clip=False)
-        self.vmin = 0
-        self.vmax = ids[-1]
-
-        # Remap matids to ID index: array up to the last valid matid.
-        ids_to_idx = np.zeros((ids[-1] + 1), dtype=np.int32)
-        ids_to_idx[ids] = np.arange(len(ids), dtype=np.int32)
-        self.ids_to_idx = ids_to_idx
-
-    def __call__(self, value, clip=None):
-        """Convert IDs to indices.
-
-        For integer values, this is a much faster operation than the base
-        class's implementation of __call__.
-        """
-        if not np.issubdtype(value.dtype, np.integer):
-            # When rendering color bars, as opposed to *images*, matplotlib
-            # passes an array of floating-point midpoint values. Let the base
-            # class logic (slower but compatible with the colorbar mechanics)
-            # handle it.
-            return super().__call__(value, clip)
-
-        mask = np.ma.getmaskarray(value)
-        invalid = value >= self.ids_to_idx.size
-        mask |= invalid
-
-        result = self.ids_to_idx[value]
-        result = np.ma.array(result, mask=mask)
-        return result
-
-
 def calc_image_axes(image: model.ImageParams):
     """Calculate label/min/max for x and y axes from an image result."""
     down = np.array(image.down)
@@ -315,7 +267,7 @@ class Imager:
 
         # Remap volume IDs and volume names into a persistent 0-based list
         (img, volumes) = self.celer_geo.map_ids(img, trace_output.volumes)
-        norm = IdNorm(np.arange(len(volumes)))
+        norm = BoundaryNorm(np.arange(len(volumes) + 1), len(volumes) + 1)
         im = ax.imshow(
             img,
             extent=[x.lo, x.hi, y.lo, y.hi],
