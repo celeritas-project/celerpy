@@ -22,9 +22,9 @@ Size2 = Annotated[list, conlist(PositiveInt, min_length=2, max_length=2)]
 
 # celer-geo/Types.hh
 class GeometryEngine(Enum):
-    orange = "orange"
-    vecgeom = "vecgeom"
     geant4 = "geant4"
+    vecgeom = "vecgeom"
+    orange = "orange"
 
 
 # corecel/Types.hh
