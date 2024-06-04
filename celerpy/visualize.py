@@ -258,7 +258,7 @@ class Imager:
         geometry: Optional[model.GeometryEngine] = None,
         memspace: Optional[model.MemSpace] = None,
         colorbar=None,
-    ):
+    ) -> dict[str, Any]:
         (trace_output, img) = self.celer_geo.trace(
             self.image, geometry=geometry, memspace=memspace
         )
@@ -303,7 +303,7 @@ class Imager:
             # Build labels
             cbar.ax.set_yticklabels(volumes)
 
-        return im
+        return result
 
 
 def plot_all_geometry(
