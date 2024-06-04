@@ -3,7 +3,6 @@ name: Test
 on:
   workflow_dispatch:
   workflow_call:
-  
 concurrency:
   group: test-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
@@ -24,7 +23,7 @@ jobs:
           - pytest
           - ruff
           - tomlsort
-    
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

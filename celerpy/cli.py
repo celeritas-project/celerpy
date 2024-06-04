@@ -4,9 +4,9 @@
 from typing import Optional
 
 import typer
+from pydantic import ValidationError
 from rich import print as rprint
 from typing_extensions import Annotated
-from pydantic import ValidationError
 
 app = typer.Typer()
 
@@ -16,7 +16,7 @@ def load_settings():
         from .settings import settings
     except ValidationError as e:
         rprint("[bold red]Failed[/bold red]", e)
-        raise typer.Exit()
+        raise typer.Exit() from None
 
     return settings
 

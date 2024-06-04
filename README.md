@@ -46,3 +46,12 @@ The makefile specifies a few useful targets:
 - `pip`: reinstall all the dependencies in your virtual environment
 - `rebuild_dependencies`: update the `requirements` file if you add a new
   dependency to `pyproject.toml`
+
+You can also test independently once your virtual environment is set up. For
+example, to run a single python test function from a single python test, with
+the most verbose output and sending stdout/stderr to the console, run:
+```console
+$ . .venv/bin/activate
+$ pytest -vv -s test/test_process.py -k test_context
+```
+

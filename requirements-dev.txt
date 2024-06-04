@@ -36,6 +36,7 @@ mypy-extensions==1.0.0
     # via mypy
 nodeenv==1.8.0
     # via pre-commit
+numpy==1.26.4
 packaging==24.0
     # via
     #   build
@@ -75,7 +76,7 @@ ruamel-yaml==0.18.6
     # via dapperdata
 ruamel-yaml-clib==0.2.8
     # via ruamel-yaml
-ruff==0.4.3
+ruff==0.4.4
 setuptools==69.5.1
     # via nodeenv
 shellingham==1.5.4
