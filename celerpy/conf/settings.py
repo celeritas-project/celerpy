@@ -3,9 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 from typing import Optional
 
-from pydantic import DirectoryPath, Field
+from pydantic import DirectoryPath
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Annotated
 
 
 class Settings(BaseSettings):
@@ -18,15 +17,15 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_prefix="celer_", validate_assignment=True
+        env_prefix="celer_",
+        validate_assignment=True,
+        use_attribute_docstrings=True,
     )
 
     color: bool = True
-    debug: bool = False
+    "Enable colorized terminal output"
+
     # TODO: log, log_local, disable_device
-    prefix_path: Optional[
-        Annotated[
-            DirectoryPath,
-            Field(description="Path to the Celeritas build/install directory"),
-        ]
-    ] = None
+
+    prefix_path: Optional[DirectoryPath] = None
+    "Path to the Celeritas build/install directory"
