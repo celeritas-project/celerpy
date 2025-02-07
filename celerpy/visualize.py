@@ -12,7 +12,7 @@ from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Any, Optional
+from typing import Any, Iterable, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -307,10 +307,17 @@ class Imager:
 
 
 def plot_all_geometry(
-    trace_image: Imager, *, colorbar=True, figsize=None
+    trace_image: Imager,
+    *,
+    colorbar: bool = True,
+    figsize: Optional[tuple] = None,
+    engines: Optional[Iterable] = None,
 ) -> Mapping[model.GeometryEngine, Any]:
     """Convenience function for plotting all available geometry types."""
-    width_ratios = [1.0] * len(model.GeometryEngine)
+    if engines is None:
+        engines = model.GeometryEngine
+    engines = list(engines)
+    width_ratios = [1.0] * len(engines)
     if colorbar:
         width_ratios.append(0.1)
 
@@ -321,11 +328,11 @@ def plot_all_geometry(
         gridspec_kw=dict(width_ratios=width_ratios),
     )
     result = {}
-    cbar: list[Any] = [False] * len(model.GeometryEngine)
+    cbar: list[Any] = [False] * len(engines)
     if colorbar:
         cbar[:0] = [axx[-1]]
 
-    for g, ax, cb in zip(model.GeometryEngine, axx, cbar):
+    for g, ax, cb in zip(engines, axx, cbar):
         try:
             result[g] = trace_image(ax, geometry=g, colorbar=cb)
         except Exception as e:
