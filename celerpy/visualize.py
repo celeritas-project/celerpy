@@ -12,7 +12,7 @@ from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -338,6 +338,61 @@ def plot_all_geometry(
         except Exception as e:
             warnings.warn(f"Failed to trace {g} geometry: {e!s}", stacklevel=1)
     return result
+
+
+def centered_image(
+    center,
+    xdir,
+    outdir,
+    width: Union[float, Tuple[float, float]],
+    **kwargs: Any,
+) -> model.ImageInput:
+    """
+    Create an ImageInput with a centered view based on the given parameters.
+
+    Parameters
+    ----------
+    center : array_like
+        The center coordinate (real space) of the image.
+    xdir : array_like
+        The direction along the rendered x-axis.
+    outdir : array_like
+        The direction out of the page in the result.
+    width : float or tuple of two floats or array_like with shape (2,)
+        If a single float is provided, the image is square and that value is
+        used for both the x (horizontal) and y (vertical) dimensions. If a
+        tuple or array-like with two elements is
+        provided, the first element specifies the width along the x-axis and
+        the second element specifies the width along the y-axis.
+    **kwargs
+        Additional keyword arguments passed to the ImageInput constructor.
+
+    Returns
+    -------
+    model.ImageInput
+        The input to ``visualize`` to generate the centered image.
+    """
+    center = np.asarray(center)
+    xdir = np.asarray(xdir)
+    ydir = np.cross(outdir, xdir)
+
+    if isinstance(width, float):
+        wx, wy = width, width
+    elif len(width) == 2:
+        wx, wy = width
+    else:
+        raise ValueError("width must be a float or a length-2 tuple")
+
+    offset = xdir * (wx / 2) + ydir * (wy / 2)
+    lower_left = (center - offset).tolist()
+    upper_right = (center + offset).tolist()
+
+    return model.ImageInput(
+        lower_left=lower_left,
+        upper_right=upper_right,
+        rightward=xdir.tolist(),
+        **kwargs,
+    )
 
 
 _register_cmaps()
