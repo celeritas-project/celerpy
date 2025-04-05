@@ -321,18 +321,18 @@ def plot_all_geometry(
     if colorbar:
         width_ratios.append(0.1)
 
-    (fig, axx) = plt.subplots(
+    (fig, all_ax) = plt.subplots(
         ncols=len(width_ratios),
         layout="constrained",
         figsize=figsize,
         gridspec_kw=dict(width_ratios=width_ratios),
     )
     result = {}
-    cbar: list[Any] = [False] * len(engines)
+    all_cbar: list[Any] = [False] * len(engines)
     if colorbar:
-        cbar[:0] = [axx[-1]]
+        all_cbar[:0] = [all_ax[-1]]
 
-    for g, ax, cb in zip(engines, axx, cbar):
+    for ax, g, cb in zip(all_ax, engines, all_cbar):
         try:
             result[g] = trace_image(ax, geometry=g, colorbar=cb)
         except Exception as e:

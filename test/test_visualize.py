@@ -70,7 +70,7 @@ def test_IdMapper():
 
 def test_centered_image():
     centered_image = visualize.centered_image
-    kwargs = dict(vertical_pixels=512)
+    kwargs = dict()
 
     # Test case 1: Square image with x projection along -y
     result = centered_image(

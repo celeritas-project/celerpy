@@ -89,7 +89,7 @@ class ImageInput(_Model):
     rightward: Real3 = [1, 0, 0]
     "Ray trace direction which points to the right in the image"
 
-    vertical_pixels: NonNegativeInt
+    vertical_pixels: NonNegativeInt = 512
     "Number of pixels along the y axis"
 
     horizontal_divisor: Optional[PositiveInt] = None
