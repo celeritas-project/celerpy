@@ -4,7 +4,7 @@
 """Manage models used for JSON I/O with Celeritas."""
 
 from enum import Enum
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import (
     BaseModel,
@@ -129,7 +129,7 @@ class TraceInput(TraceSetup):
 class TraceOutput(_Model):
     trace: TraceSetup
     image: ImageParams
-    volumes: Optional[List[str]] = None
+    volumes: Optional[list[str]] = None
     sizeof_int: PositiveInt
 
 
