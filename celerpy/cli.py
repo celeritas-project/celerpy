@@ -1,12 +1,11 @@
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
-from typing import Optional
+from typing import Annotated, Optional
 
 import typer
 from pydantic import ValidationError
 from rich import print as rprint
-from typing_extensions import Annotated
 
 app = typer.Typer()
 

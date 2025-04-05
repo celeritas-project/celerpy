@@ -7,12 +7,12 @@ import contextlib
 import json
 import re
 import warnings
-from collections.abc import Mapping, MutableSequence
+from collections.abc import Iterable, Mapping, MutableSequence
 from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Any, Iterable, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -344,7 +344,7 @@ def centered_image(
     center,
     xdir,
     outdir,
-    width: Union[float, Tuple[float, float]],
+    width: Union[float, tuple[float, float]],
     **kwargs: Any,
 ) -> model.ImageInput:
     """
