@@ -7,12 +7,12 @@ import contextlib
 import json
 import re
 import warnings
-from collections.abc import Mapping, MutableSequence
+from collections.abc import Iterable, Mapping, MutableSequence
 from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -307,30 +307,92 @@ class Imager:
 
 
 def plot_all_geometry(
-    trace_image: Imager, *, colorbar=True, figsize=None
+    trace_image: Imager,
+    *,
+    colorbar: bool = True,
+    figsize: Optional[tuple] = None,
+    engines: Optional[Iterable] = None,
 ) -> Mapping[model.GeometryEngine, Any]:
     """Convenience function for plotting all available geometry types."""
-    width_ratios = [1.0] * len(model.GeometryEngine)
+    if engines is None:
+        engines = model.GeometryEngine
+    engines = list(engines)
+    width_ratios = [1.0] * len(engines)
     if colorbar:
         width_ratios.append(0.1)
 
-    (fig, axx) = plt.subplots(
+    (fig, all_ax) = plt.subplots(
         ncols=len(width_ratios),
         layout="constrained",
         figsize=figsize,
         gridspec_kw=dict(width_ratios=width_ratios),
     )
     result = {}
-    cbar: list[Any] = [False] * len(model.GeometryEngine)
+    all_cbar: list[Any] = [False] * len(engines)
     if colorbar:
-        cbar[:0] = [axx[-1]]
+        all_cbar[:0] = [all_ax[-1]]
 
-    for g, ax, cb in zip(model.GeometryEngine, axx, cbar):
+    for ax, g, cb in zip(all_ax, engines, all_cbar):
         try:
             result[g] = trace_image(ax, geometry=g, colorbar=cb)
         except Exception as e:
             warnings.warn(f"Failed to trace {g} geometry: {e!s}", stacklevel=1)
     return result
+
+
+def centered_image(
+    center,
+    xdir,
+    outdir,
+    width: Union[float, tuple[float, float]],
+    **kwargs: Any,
+) -> model.ImageInput:
+    """
+    Create an ImageInput with a centered view based on the given parameters.
+
+    Parameters
+    ----------
+    center : array_like
+        The center coordinate (real space) of the image.
+    xdir : array_like
+        The direction along the rendered x-axis.
+    outdir : array_like
+        The direction out of the page in the result.
+    width : float or tuple of two floats or array_like with shape (2,)
+        If a single float is provided, the image is square and that value is
+        used for both the x (horizontal) and y (vertical) dimensions. If a
+        tuple or array-like with two elements is
+        provided, the first element specifies the width along the x-axis and
+        the second element specifies the width along the y-axis.
+    **kwargs
+        Additional keyword arguments passed to the ImageInput constructor.
+
+    Returns
+    -------
+    model.ImageInput
+        The input to ``visualize`` to generate the centered image.
+    """
+    center = np.asarray(center)
+    xdir = np.asarray(xdir)
+    ydir = np.cross(outdir, xdir)
+
+    if isinstance(width, float):
+        wx, wy = width, width
+    elif len(width) == 2:
+        wx, wy = width
+    else:
+        raise ValueError("width must be a float or a length-2 tuple")
+
+    offset = xdir * (wx / 2) + ydir * (wy / 2)
+    lower_left = (center - offset).tolist()
+    upper_right = (center + offset).tolist()
+
+    return model.ImageInput(
+        lower_left=lower_left,
+        upper_right=upper_right,
+        rightward=xdir.tolist(),
+        **kwargs,
+    )
 
 
 _register_cmaps()

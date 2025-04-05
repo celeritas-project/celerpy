@@ -66,3 +66,27 @@ def test_IdMapper():
     assert_array_equal(img, np.array([2, 2, 2]))
     assert_array_equal(img.mask, [True, False, True])
     assert vol == ["bar", "baz", "foo"]
+
+
+def test_centered_image():
+    centered_image = visualize.centered_image
+    kwargs = dict()
+
+    # Test case 1: Square image with x projection along -y
+    result = centered_image(
+        center=[0, 0, 0], xdir=[0, -1, 0], outdir=[0, 0, 1], width=2.0, **kwargs
+    )
+    assert result.lower_left == [-1.0, 1.0, 0.0]
+    assert result.upper_right == [1.0, -1.0, 0.0]
+    assert result.rightward == [0.0, -1.0, 0.0]
+
+    # Test case 2: Rectangle image with xdir = [1, 0, 0]
+    result = centered_image(
+        center=[1, 0, 0],
+        xdir=[1, 0, 0],
+        outdir=[0, 0, -1],
+        width=(2.0, 4.0),
+        **kwargs,
+    )
+    assert result.lower_left == [0.0, 2.0, 0.0]
+    assert result.upper_right == [2.0, -2.0, 0.0]
