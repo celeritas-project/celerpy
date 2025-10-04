@@ -62,6 +62,9 @@ class ModelSetup(_Model):
     geometry_file: FilePath
     "Path to the GDML input file"
 
+    perfetto_file: Optional[FilePath] = None
+    "Path to write Perfetto profiling output"
+
 
 # celer-geo/GeoInput.hh
 class TraceSetup(_Model):

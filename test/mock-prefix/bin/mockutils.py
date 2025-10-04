@@ -5,6 +5,9 @@
 import json
 import signal
 import sys
+from typing import Any
+
+import numpy as np
 
 if not sys.warnoptions:
     import warnings
@@ -31,7 +34,7 @@ def terminate(signum, frame):
     sys.exit(signum)
 
 
-def read_input():
+def read_input() -> Any:
     try:
         return json.loads(input())
     except EOFError:
@@ -42,3 +45,24 @@ def read_input():
 def setup_signals():
     signal.signal(signal.SIGINT, terminate)
     signal.signal(signal.SIGTERM, terminate)
+
+
+def expect_trace(expected_inp, expected_outp):
+    expected_inp = json.loads(expected_inp)
+    expected_outp = json.loads(expected_outp)
+    log("expecting input...")
+    inp = read_input()
+    if inp is None:
+        log("exiting early due to missing input")
+        sys.exit(1)
+    log("...read input")
+    bin_file = inp.pop("bin_file")
+    if inp != expected_inp:
+        raise RuntimeError(f"Unexpected output: got {json.dumps(inp)!r}")
+
+    with open(bin_file, "wb") as f:
+        f.write(np.zeros([4, 4], dtype=np.int32).tobytes())
+
+    log("writing output...")
+    expected_outp["trace"]["bin_file"] = bin_file
+    dump(expected_outp)

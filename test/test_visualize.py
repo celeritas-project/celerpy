@@ -9,10 +9,15 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from celerpy import model, visualize
-from celerpy.settings import settings
+from celerpy.settings import LogLevel, settings
 
 local_path = Path(__file__).parent
 settings.prefix_path = local_path / "mock-prefix"
+
+settings.prefix_path = Path(__file__).parent / "mock-prefix"
+settings.log = LogLevel.debug
+settings.log_local = LogLevel.warning
+settings.g4org_verbose = True
 
 
 def test_CelerGeo():
