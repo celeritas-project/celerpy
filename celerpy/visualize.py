@@ -27,12 +27,39 @@ __all__ = ["CelerGeo", "Imager", "plot_all_geometry"]
 _re_ptr = re.compile(r"0x[0-9a-f]+")
 
 
+class WrappingListedColormap(ListedColormap):
+    """A ListedColormap that wraps around when the number of colors is exceeded.
+
+    When more colors are requested than available, this colormap will cycle
+    through the available colors and emit a warning.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._warned: bool = False
+
+    def __call__(self, X, *args, **kwargs):
+        X = np.asarray(X)
+        if not self._warned and (max_val := np.max(X)) >= self.N:
+            warnings.warn(
+                f"Color index {max_val} exceeds colormap size {self.N}. "
+                "Colors will be reused cyclically.",
+                stacklevel=1,
+            )
+            self._warned = True
+
+        # Wrap indices using modulo
+        X_wrapped = np.mod(X, self.N)
+        return super().__call__(X_wrapped, *args, **kwargs)
+
+
 def _register_cmaps():
     resources = files("celerpy._resources")
-    cmap = ListedColormap(
-        np.loadtxt(resources.joinpath("glasbey-light.txt")),
-        name="glasbey_light",
-    )
+    with resources.joinpath("glasbey-light.txt").open("r") as f:
+        cmap = WrappingListedColormap(
+            np.loadtxt(f),
+            name="glasbey_light",
+        )
     try:
         colormaps.register(cmap)
     except ValueError as e:
