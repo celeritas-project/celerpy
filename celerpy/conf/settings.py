@@ -53,3 +53,6 @@ class Settings(BaseSettings):
 
     prefix_path: Optional[DirectoryPath] = None
     "Path to the Celeritas build/install directory"
+
+    profiling: bool = False
+    "Enable NVTX/ROCTX/Perfetto profiling"
