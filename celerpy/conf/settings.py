@@ -1,10 +1,21 @@
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
+from enum import StrEnum
 from typing import Optional
 
 from pydantic import DirectoryPath
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class LogLevel(StrEnum):
+    """Minimum verbosity level for logging."""
+
+    debug = "debug"
+    info = "info"
+    warning = "warning"
+    error = "error"
+    critical = "critical"
 
 
 class Settings(BaseSettings):
@@ -25,7 +36,23 @@ class Settings(BaseSettings):
     color: bool = True
     "Enable colorized terminal output"
 
-    # TODO: log, log_local, disable_device
+    disable_device: bool = False
+    "Disable GPU execution even if available"
+
+    g4org_export: Optional[str] = None
+    "Filename base to export converted Geant4 geometry"
+
+    g4org_verbose: bool = False
+    "Filename base to export converted Geant4 geometry"
+
+    log: LogLevel = LogLevel.info
+    "World log level"
+
+    log_local: LogLevel = LogLevel.warning
+    "Self log level"
 
     prefix_path: Optional[DirectoryPath] = None
     "Path to the Celeritas build/install directory"
+
+    profiling: bool = False
+    "Enable NVTX/ROCTX/Perfetto profiling"

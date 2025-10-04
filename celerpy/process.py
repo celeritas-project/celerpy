@@ -17,19 +17,35 @@ from .settings import settings
 M = TypeVar("M", bound=BaseModel)
 P = TypeVar("P", bound=Popen)
 
+_settings_env = {
+    "profiling": "CELER_ENABLE_PROFILING",
+}
+
+for _attr, _ in settings:
+    if _attr.startswith("g4org"):
+        _settings_env[_attr] = _attr.upper()
+
+
+def settings_to_env() -> dict[str, str]:
+    """Convert settings to environment variables."""
+    env = {}
+    for attr, value in settings:
+        if value is None:
+            continue
+        try:
+            key = _settings_env[attr]
+        except KeyError:
+            key = "CELER_" + attr.upper()
+        env[key] = str(value)
+    return env
+
 
 def launch(executable: str, *, env=None, **kwargs) -> Popen:
     """Set up and launch a Celeritas process with stdin/stdout pipes."""
     # Set up environment variables
     if env is None:
         env = os.environ.copy()
-    for attr in ["color"]:
-        key = "CELER_" + attr.upper()
-        value = getattr(settings, attr)
-        if isinstance(value, bool):
-            # Set to 1 or blank
-            value = "1" if value else ""
-        env[key] = value
+    env.update(settings_to_env())
 
     # Create child process, which implicitly keeps a copy of the file
     # descriptors
