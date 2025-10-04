@@ -12,11 +12,12 @@ from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Any, Optional, Union
+from typing import Any, NamedTuple, Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colormaps
+from matplotlib.axes import Axes as mpl_Axes
 from matplotlib.colors import BoundaryNorm, ListedColormap
 
 from . import model, process
@@ -27,12 +28,39 @@ __all__ = ["CelerGeo", "Imager", "plot_all_geometry"]
 _re_ptr = re.compile(r"0x[0-9a-f]+")
 
 
+class WrappingListedColormap(ListedColormap):
+    """A ListedColormap that wraps around when the number of colors is exceeded.
+
+    When more colors are requested than available, this colormap will cycle
+    through the available colors and emit a warning.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._warned: bool = False
+
+    def __call__(self, X, *args, **kwargs):
+        X = np.asarray(X)
+        if not self._warned and (max_val := np.max(X)) >= self.N:
+            warnings.warn(
+                f"Color index {max_val} exceeds colormap size {self.N}. "
+                "Colors will be reused cyclically.",
+                stacklevel=1,
+            )
+            self._warned = True
+
+        # Wrap indices using modulo
+        X_wrapped = np.mod(X, self.N)
+        return super().__call__(X_wrapped, *args, **kwargs)
+
+
 def _register_cmaps():
     resources = files("celerpy._resources")
-    cmap = ListedColormap(
-        np.loadtxt(resources.joinpath("glasbey-light.txt")),
-        name="glasbey_light",
-    )
+    with resources.joinpath("glasbey-light.txt").open("r") as f:
+        cmap = WrappingListedColormap(
+            np.loadtxt(f),
+            name="glasbey_light",
+        )
     try:
         colormaps.register(cmap)
     except ValueError as e:
@@ -98,9 +126,14 @@ class CelerGeo:
     volumes: dict[model.GeometryEngine, list[str]]
 
     @classmethod
+    def with_setup(cls, *args, **kwargs):
+        """Construct, forwarding args to ModelSetup."""
+        return cls(setup=model.ModelSetup(*args, **kwargs))
+
+    @classmethod
     def from_filename(cls, path: Path):
         """Construct from a geometry filename and default other setup."""
-        return cls(model.ModelSetup(geometry_file=path))
+        return cls.with_setup(geometry_file=path)
 
     def __init__(self, setup: model.ModelSetup):
         # Create the process and attach stdin/stdout pipes
@@ -210,8 +243,15 @@ class ReverseIndexDict(collections.defaultdict):
         return result
 
 
-LabeledAxis = collections.namedtuple("LabeledAxis", ["label", "lo", "hi"])
-LabeledAxes = collections.namedtuple("LabeledAxes", ["x", "y"])
+class LabeledAxis(NamedTuple):
+    label: str
+    lo: float
+    hi: float
+
+
+class LabeledAxes(NamedTuple):
+    x: LabeledAxis
+    y: LabeledAxis
 
 
 def calc_image_axes(image: model.ImageParams) -> LabeledAxes:
@@ -254,10 +294,10 @@ class Imager:
 
     def __call__(
         self,
-        ax,
+        ax: mpl_Axes,
         geometry: Optional[model.GeometryEngine] = None,
         memspace: Optional[model.MemSpace] = None,
-        colorbar=None,
+        colorbar: Union[bool, None, mpl_Axes] = None,
     ) -> dict[str, Any]:
         (trace_output, img) = self.celer_geo.trace(
             self.image, geometry=geometry, memspace=memspace
@@ -268,9 +308,9 @@ class Imager:
         (x, y) = self.axes
 
         ax.set_xlabel(x.label)
-        ax.set_xlim([x.lo, x.hi])
+        ax.set_xlim((x.lo, x.hi))
         ax.set_ylabel(y.label)
-        ax.set_ylim([y.lo, y.hi])
+        ax.set_ylim((y.lo, y.hi))
         tr = trace_output.trace
         ax.set_title(f"{tr.geometry.name} ({tr.memspace.name})")
 
@@ -279,7 +319,7 @@ class Imager:
         norm = BoundaryNorm(np.arange(len(volumes) + 1), len(volumes) + 1)
         im = ax.imshow(
             img,
-            extent=[x.lo, x.hi, y.lo, y.hi],
+            extent=(x.lo, x.hi, y.lo, y.hi),
             interpolation="none",
             norm=norm,
             cmap="glasbey_light",
@@ -292,11 +332,14 @@ class Imager:
         if colorbar:
             # Create colorbar
             bounds = norm.boundaries
-            kwargs = {"ticks": bounds[:-1] + np.diff(bounds) / 2}
+            kwargs: dict[str, Any] = {
+                "ticks": bounds[:-1] + np.diff(bounds) / 2
+            }
             if not isinstance(colorbar, bool):
                 # User can specify a new axis to place the colorbar
                 kwargs["cax"] = colorbar
             fig = ax.get_figure()
+            assert fig is not None
             cbar = fig.colorbar(im, **kwargs)
             result["colorbar"] = cbar
 
