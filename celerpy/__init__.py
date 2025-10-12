@@ -7,3 +7,6 @@ try:
     __version__ = _version.__version__
 except:  # noqa: E722
     __version__ = "0.0.0-dev"
+
+# Expose __version__ for type checkers
+__all__ = ["__version__"]
