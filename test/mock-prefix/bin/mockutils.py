@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import json
+import os
 import signal
 import sys
 from typing import Any
@@ -15,15 +16,24 @@ if not sys.warnoptions:
     warnings.simplefilter("error")
 
 
-def log(*args):
-    print("<child>", *args, file=sys.stderr, flush=True)
+def osprint(*args, sep=" ", end="\n", file=sys.stdout, flush=True):
+    """Print using the low-level os interfaces rather than python file buffers.
 
-
-def dump(obj, file=sys.stdout):
-    try:
-        json.dump(obj, file)
-        file.write("\n")
+    This prevents "reentrant call" errors if a signal is caught during print.
+    """
+    s = sep.join(map(str, args)) + end
+    os.write(file.fileno(), s.encode())
+    if flush:
         file.flush()
+
+
+def log(*args):
+    osprint("<child>", *args, file=sys.stderr)
+
+
+def dump(obj):
+    try:
+        osprint(json.dumps(obj))
     except BrokenPipeError as e:
         log(e)
 
