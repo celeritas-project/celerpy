@@ -2,7 +2,7 @@
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
 try:
-    from . import _version
+    from . import _version  # type: ignore[attr-defined]
 
     __version__ = _version.__version__
 except:  # noqa: E722
