@@ -287,7 +287,7 @@ def calc_image_axes(image: model.ImageParams) -> LabeledAxes:
 class Imager:
     axes: Optional[LabeledAxes] = None
 
-    def __init__(self, celer_geo, image: model.ImageInput):
+    def __init__(self, celer_geo: CelerGeo, image: model.ImageInput):
         self.celer_geo = celer_geo
         self.image = image
         self.axes = None  # Lazily update

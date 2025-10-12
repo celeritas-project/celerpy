@@ -12,12 +12,12 @@ from celerpy import model, visualize
 from celerpy.settings import LogLevel, settings
 
 local_path = Path(__file__).parent
-settings.prefix_path = local_path / "mock-prefix"
 
 settings.prefix_path = Path(__file__).parent / "mock-prefix"
-settings.g4org_verbose = True
 settings.log = LogLevel.DEBUG
 settings.log_local = LogLevel.WARNING
+settings.g4org_options = Path(__file__).parent / "data" / "two-boxes.gdml"
+settings.profiling = True
 
 
 def test_CelerGeo():

@@ -22,7 +22,7 @@ _settings_env = {
 }
 
 for _attr, _ in settings:
-    if _attr.startswith("g4org"):
+    if _attr.startswith("g4"):
         _settings_env[_attr] = _attr.upper()
 
 

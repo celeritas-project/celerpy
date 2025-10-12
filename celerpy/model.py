@@ -30,6 +30,17 @@ class _Model(BaseModel):
     model_config = ConfigDict(use_attribute_docstrings=True)
 
 
+# orange/OrangeTypes.hh
+class Tolerance(_Model):
+    """Relative and absolute tolerance for construction and tracking."""
+
+    rel: Annotated[float, Field(gt=0, lt=1)]
+    "Relative tolerance: must be in (0, 1)"
+
+    abs: Annotated[float, Field(gt=0)]
+    "Absolute tolerance: must be greater than zero"
+
+
 # corecel/Types.hh
 class MemSpace(StrEnum):
     """Memory/execution space."""
@@ -79,6 +90,71 @@ class GeometryEngine(StrEnum):
     orange = ORANGE
 
 
+# orange/g4org/Options.hh
+class InlineSingletons(StrEnum):
+    """How to inline volumes that are used only once."""
+
+    NONE = auto()  # Never
+    UNTRANSFORMED = auto()  # Only if not translated nor rotated
+    UNROTATED = auto()  # Only if translated
+    ALL = auto()  # Always
+
+
+# orange/g4org/Options.hh
+class OrangeConversionOptions(_Model):
+    """Construction options for Geant4-to-ORANGE conversion.
+
+    Note that most of these should never be touched when running an actual
+    problem. If the length unit is changed, the resulting geometry is
+    inconsistent with Geant4's scale.
+    """
+
+    # Problem scale and tolerance
+
+    unit_length: PositiveFloat = 1.0
+    "Scale factor (input unit length), customizable for unit testing"
+
+    tol: Optional[Tolerance] = None
+    "Construction and tracking tolerance (native units)"
+
+    # Structural conversion
+
+    explicit_interior_threshold: NonNegativeInt = 2
+    "Volumes with up to this many children construct an explicit interior"
+
+    inline_childless: bool = True
+    "Forcibly inline volumes that have no children"
+
+    inline_singletons: InlineSingletons = InlineSingletons.UNTRANSFORMED
+    "Forcibly inline volumes that are only used once"
+
+    inline_unions: bool = True
+    "Forcibly copy child volumes that have union boundaries"
+
+    remove_interior: bool = True
+    "Replace 'interior' unit boundaries with 'true' and simplify"
+
+    remove_negated_join: bool = True
+    "Use DeMorgan's law to replace 'not all of' with 'any of not'"
+
+    # Debug output
+
+    verbose_volumes: bool = False
+    "Write output about volumes being converted"
+
+    verbose_structure: bool = False
+    "Write output about proto-universes being constructed"
+
+    objects_output_file: Optional[str] = None
+    "Write converted Geant4 object structure to a JSON file"
+
+    csg_output_file: Optional[str] = None
+    "Write constructed CSG surfaces and tree to a JSON file"
+
+    org_output_file: Optional[str] = None
+    "Write final org.json to a JSON file"
+
+
 # celer-geo/GeoInput.hh
 class ModelSetup(_Model):
     cuda_stack_size: Optional[NonNegativeInt] = None
@@ -93,6 +169,9 @@ class ModelSetup(_Model):
 
 # celer-geo/GeoInput.hh
 class TraceSetup(_Model):
+    _cmd: Literal["trace"] = "trace"
+    "Command name in the JSON file"
+
     geometry: Optional[GeometryEngine] = None
     "Geometry engine with which to perform the trace"
 
