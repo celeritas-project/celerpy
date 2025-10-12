@@ -41,20 +41,17 @@ pyenv:
 
 # Note that CI is defined when running through github actions
 .PHONY: pip
-pip: $(VENV_TARGET)
+pip: $(VENV_TARGET) pip-install
+
+.PHONY: pip-install
+pip-install:
 ifdef CI
 	$(PYTHON) -m pip install -r requirements-dev.txt
 else
 	$(PYTHON) -m pip install -e .[dev]
 endif
 
-$(BUILD_DIR): $(VENV_TARGET)
-ifdef CI
-	$(PYTHON) -m pip install -r requirements-dev.txt
-else
-	$(PYTHON) -m pip install -e .[dev]
-endif
-
+$(BUILD_DIR): $(VENV_TARGET) pip-install
 .PHONY: pre-commit
 pre-commit: $(BUILD_DIR)
 	$(PYTHON_ENV) pre-commit install
