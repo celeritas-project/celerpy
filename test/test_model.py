@@ -7,6 +7,14 @@ import json
 from celerpy import model
 
 
+def test_enum_lowercase():
+    # NOTE: no deprecation warning issued :'(
+    result = model.GeometryEngine.geant4
+    assert result == model.GeometryEngine.GEANT4
+
+    assert model.GeometryEngine("geant4") == model.GeometryEngine.GEANT4
+
+
 def test_model_setup(tmp_path):
     gdml_file = tmp_path / "foo.gdml"
     gdml_file.write_text("<gdml />")

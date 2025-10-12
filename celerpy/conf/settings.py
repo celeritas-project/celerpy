@@ -1,25 +1,16 @@
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
-from enum import StrEnum
 from typing import Optional
 
 from pydantic import DirectoryPath
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
-class LogLevel(StrEnum):
-    """Minimum verbosity level for logging."""
-
-    debug = "debug"
-    info = "info"
-    warning = "warning"
-    error = "error"
-    critical = "critical"
+from celerpy.model import LogLevel
 
 
 class Settings(BaseSettings):
-    """Global settings for Celeritas front end.
+    """Global environment settings for Celeritas front end.
 
     Settings can be changed by setting environment variables such as
     ``CELER_PREFIX_PATH`` (case insensitive).
@@ -45,10 +36,10 @@ class Settings(BaseSettings):
     g4org_verbose: bool = False
     "Filename base to export converted Geant4 geometry"
 
-    log: LogLevel = LogLevel.info
+    log: LogLevel = LogLevel.INFO
     "World log level"
 
-    log_local: LogLevel = LogLevel.warning
+    log_local: LogLevel = LogLevel.WARNING
     "Self log level"
 
     prefix_path: Optional[DirectoryPath] = None

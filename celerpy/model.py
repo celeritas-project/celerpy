@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Manage models used for JSON I/O with Celeritas."""
 
-from enum import Enum
+from enum import StrEnum, auto
 from typing import Annotated, Literal, Optional
 
 from pydantic import (
@@ -30,28 +30,53 @@ class _Model(BaseModel):
     model_config = ConfigDict(use_attribute_docstrings=True)
 
 
-# celer-geo/Types.hh
-class GeometryEngine(Enum):
-    """Geometry model implementation for execution and rendering."""
-
-    geant4 = "geant4"
-    vecgeom = "vecgeom"
-    orange = "orange"
-
-
 # corecel/Types.hh
-class MemSpace(Enum):
+class MemSpace(StrEnum):
     """Memory/execution space."""
 
-    host = "host"  # CPU
-    device = "device"  # GPU
+    HOST = auto()  # CPU
+    DEVICE = auto()  # GPU
+
+    # Backward compatibility
+    host = HOST
+    device = DEVICE
 
 
 # corecel/Types.hh
-class UnitSystem(Enum):
-    cgs = "cgs"
-    si = "si"
-    clhep = "clhep"
+class UnitSystem(StrEnum):
+    CGS = auto()
+    SI = auto()
+    CLHEP = auto()
+
+    # Backward compatibility
+    cgs = CGS
+    si = SI
+    clhep = CLHEP
+
+
+# corecel/io/LoggerTypes.hh
+class LogLevel(StrEnum):
+    """Minimum verbosity level for logging."""
+
+    DEBUG = auto()
+    INFO = auto()
+    WARNING = auto()
+    ERROR = auto()
+    CRITICAL = auto()
+
+
+# celer-geo/Types.hh
+class GeometryEngine(StrEnum):
+    """Geometry model implementation for execution and rendering."""
+
+    GEANT4 = auto()
+    VECGEOM = auto()
+    ORANGE = auto()
+
+    # Backward compatibility
+    geant4 = GEANT4
+    vecgeom = VECGEOM
+    orange = ORANGE
 
 
 # celer-geo/GeoInput.hh
