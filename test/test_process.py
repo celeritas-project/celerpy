@@ -4,8 +4,13 @@
 
 import json
 import signal
+from pathlib import Path
 
 from celerpy.process import close, communicate, launch
+from celerpy.settings import settings
+
+local_path = Path(__file__).parent
+settings.prefix_path = local_path / "mock-prefix"
 
 
 def communicate_json(process, inp):
