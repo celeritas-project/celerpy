@@ -15,9 +15,9 @@ local_path = Path(__file__).parent
 settings.prefix_path = local_path / "mock-prefix"
 
 settings.prefix_path = Path(__file__).parent / "mock-prefix"
-settings.log = LogLevel.debug
-settings.log_local = LogLevel.warning
 settings.g4org_verbose = True
+settings.log = LogLevel.DEBUG
+settings.log_local = LogLevel.WARNING
 
 
 def test_CelerGeo():
@@ -27,12 +27,12 @@ def test_CelerGeo():
             cg.trace()
         (result, img) = cg.trace(
             model.ImageInput(upper_right=[1, 1, 0], vertical_pixels=4),
-            geometry=model.GeometryEngine.orange,
+            geometry=model.GeometryEngine.ORANGE,
         )
         assert isinstance(result, model.TraceOutput)
         assert img.shape == (4, 4)
         assert img.dtype == np.int32
-        (result, img) = cg.trace(geometry=model.GeometryEngine.orange)
+        (result, img) = cg.trace(geometry=model.GeometryEngine.ORANGE)
         assert isinstance(result, model.TraceOutput)
         assert img.shape == (4, 4)
         (result, img) = cg.trace(geometry=model.GeometryEngine.geant4)

@@ -68,9 +68,9 @@ def _register_cmaps():
 
 
 UNIT_LENGTH = {
-    model.UnitSystem.cgs: "cm",
-    model.UnitSystem.clhep: "mm",
-    model.UnitSystem.si: "m",
+    model.UnitSystem.CGS: "cm",
+    model.UnitSystem.CLHEP: "mm",
+    model.UnitSystem.SI: "m",
 }
 
 
