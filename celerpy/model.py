@@ -134,7 +134,7 @@ class OrangeConversionOptions(_Model):
     remove_interior: bool = True
     "Replace 'interior' unit boundaries with 'true' and simplify"
 
-    remove_negated_join: bool = True
+    remove_negated_join: bool = False
     "Use DeMorgan's law to replace 'not all of' with 'any of not'"
 
     # Debug output
