@@ -216,9 +216,10 @@ class CelerGeo:
 
         return (result, npimg)
 
-    def close(self, *, timeout: float = 0.25):
+    def close(self, *, timeout: float = 0.25) -> Union[dict[str, dict], str]:
         """Cleanly exit the ray trace loop, returning run statistics if
-        possible."""
+        possible.
+        """
         result = process.communicate(self.process, json.dumps(None))
         with contextlib.suppress(TimeoutExpired):
             self.process.wait(timeout=timeout)
