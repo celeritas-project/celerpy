@@ -15,7 +15,9 @@ from pydantic import (
     PositiveFloat,
     PositiveInt,
     conlist,
+    create_model,
 )
+from pydantic_core import to_json
 
 Real3 = Annotated[list, conlist(float, min_length=3, max_length=3)]
 Size2 = Annotated[list, conlist(PositiveInt, min_length=2, max_length=2)]
@@ -232,6 +234,19 @@ class TraceInput(TraceSetup):
     "Reuse the existing image"
 
 
+# celer-geo/celer-geo.cc
+class OrangeStats(_Model):
+    def model_dump_json(self, **kwargs):
+        """Override to ensure _cmd is always set to orange_stats."""
+        result = self.model_dump(**kwargs)
+        result["_cmd"] = "orange_stats"
+        return to_json(result).decode()
+
+
+# Union of available commands
+Command = TraceInput | OrangeStats
+
+
 # ad hoc: result from a 'trace' command
 class TraceOutput(_Model):
     trace: TraceSetup
@@ -240,14 +255,110 @@ class TraceOutput(_Model):
     sizeof_int: PositiveInt
 
 
+# orange/OrangeData.hh
+class OrangeScalars(_Model):
+    """Scalar properties of an ORANGE geometry."""
+
+    max_depth: NonNegativeInt
+    "Maximum universe nesting depth"
+
+    max_faces: NonNegativeInt
+    "Maximum number of faces intersecting a surface"
+
+    max_intersections: NonNegativeInt
+    "Maximum number of surface intersections along a ray"
+
+    max_logic_depth: NonNegativeInt
+    "Maximum CSG logic tree depth"
+
+    tol: Tolerance
+    "Construction and tracking tolerance"
+
+
+# Helper to create simple size models
+def _create_size_model(
+    name: str, fields: list[str], base: type = _Model
+) -> type[BaseModel]:
+    """Create a model with NonNegativeInt fields."""
+    return create_model(
+        name,
+        __base__=base,
+        **{field: (NonNegativeInt, Field()) for field in fields},  # type: ignore
+    )
+
+
+# orange/OrangeData.hh
+BihSizes = _create_size_model(
+    "BihSizes", ["bboxes", "inner_nodes", "leaf_nodes", "local_volume_ids"]
+)
+BihSizes.__doc__ = "Bounding Interval Hierarchy tree sizes."
+
+
+# orange/OrangeData.hh
+UniverseIndexerSizes = _create_size_model(
+    "UniverseIndexerSizes", ["surfaces", "volumes"]
+)
+UniverseIndexerSizes.__doc__ = "Universe indexer sizes."
+
+
+# orange/OrangeData.hh
+_OrangeSizesBase: type = _create_size_model(
+    "_OrangeSizesBase",
+    [
+        "connectivity_records",
+        "daughters",
+        "fast_real3s",
+        "local_surface_ids",
+        "local_volume_ids",
+        "logic_ints",
+        "obz_records",
+        "real_ids",
+        "reals",
+        "rect_arrays",
+        "simple_units",
+        "surface_types",
+        "transforms",
+        "universe_indices",
+        "universe_types",
+        "volume_ids",
+        "volume_instance_ids",
+        "volume_records",
+    ],
+)
+
+
+# orange/OrangeData.hh
+class OrangeSizes(_OrangeSizesBase):
+    """Size properties of an ORANGE geometry."""
+
+    bih: type[BihSizes]  # type: ignore
+    universe_indexer: type[UniverseIndexerSizes]  # type: ignore
+
+
+# orange/OrangeParamsOutput.hh
+class OrangeParamsOutput(_Model):
+    """ORANGE geometry data structure sizes and scalars."""
+
+    _category: Literal["internal"]
+    _label: Literal["orange"]
+    scalars: OrangeScalars
+    sizes: OrangeSizes
+
+
 class ExceptionDump(_Model):
     """Output of an exception message when a Celeritas app fails"""
 
+    # Output wrapper
     _category: Literal["result"]
     _label: Literal["exception"]
+
+    # corecel/io/ExceptionOutput.cc
     type: str
+    context: Optional["ExceptionDump"] = None
+
+    # corecel/AssertIO.json.cc
+    what: Optional[str]
+    which: str
     condition: Optional[str] = None
     file: Optional[str] = None
     line: Optional[int] = None
-    which: Optional[str] = None
-    context: Optional["ExceptionDump"] = None
