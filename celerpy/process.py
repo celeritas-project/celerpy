@@ -11,8 +11,8 @@ from typing import Optional, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
+from . import settings
 from .model import ExceptionDump
-from .settings import settings
 
 M = TypeVar("M", bound=BaseModel)
 P = TypeVar("P", bound=Popen)
@@ -21,7 +21,7 @@ _settings_env = {
     "profiling": "CELER_ENABLE_PROFILING",
 }
 
-for _attr, _ in settings:
+for _attr, _ in settings.settings:
     if _attr.startswith("g4"):
         _settings_env[_attr] = _attr.upper()
 
@@ -29,7 +29,7 @@ for _attr, _ in settings:
 def settings_to_env() -> dict[str, str]:
     """Convert settings to environment variables."""
     env = {}
-    for attr, value in settings:
+    for attr, value in settings.settings:
         if value is None:
             continue
         try:
@@ -49,10 +49,11 @@ def launch(executable: str, *, env=None, **kwargs) -> Popen:
 
     # Create child process, which implicitly keeps a copy of the file
     # descriptors
-    if settings.prefix_path is None:
+    prefix_path = settings.settings.prefix_path
+    if prefix_path is None:
         raise RuntimeError("Celeritas prefix path is not set")
     return Popen(
-        [settings.prefix_path / "bin" / executable, "-"],
+        [prefix_path / "bin" / executable, "-"],
         stdin=PIPE,
         stdout=PIPE,
         bufsize=1,  # buffer by line
