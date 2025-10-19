@@ -12,7 +12,7 @@ from typing import Optional, TypeVar
 from pydantic import BaseModel, ValidationError
 
 from . import settings
-from .model import ExceptionDump
+from .model.output import ExceptionDump
 
 M = TypeVar("M", bound=BaseModel)
 P = TypeVar("P", bound=Popen)

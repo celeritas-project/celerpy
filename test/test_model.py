@@ -5,15 +5,17 @@
 import json
 from pathlib import Path
 
-from celerpy import model
+from celerpy.model import input as minput
+from celerpy.model import output as moutput
+from celerpy.model import types as mtypes
 
 
 def test_enum_lowercase():
     # NOTE: no deprecation warning issued :'(
-    result = model.GeometryEngine.geant4
-    assert result == model.GeometryEngine.GEANT4
+    result = mtypes.GeometryEngine.geant4
+    assert result == mtypes.GeometryEngine.GEANT4
 
-    assert model.GeometryEngine("geant4") == model.GeometryEngine.GEANT4
+    assert mtypes.GeometryEngine("geant4") == mtypes.GeometryEngine.GEANT4
 
 
 def test_model_setup(tmp_path: Path):
@@ -24,15 +26,15 @@ def test_model_setup(tmp_path: Path):
             "geometry_file": str(gdml_file),
         }
     )
-    ms = model.ModelSetup.model_validate_json(inp_json)
+    ms = minput.ModelSetup.model_validate_json(inp_json)
     assert gdml_file == ms.geometry_file
 
 
 def test_image_input():
-    ii = model.ImageInput(
+    ii = minput.ImageInput(
         lower_left=[-1, 0, 0], upper_right=[1, 1, 0], vertical_pixels=1024
     )
-    assert ii == model.ImageInput.model_construct(
+    assert ii == minput.ImageInput.model_construct(
         lower_left=[-1.0, 0.0, 0.0],
         upper_right=[1.0, 1.0, 0.0],
         rightward=[1, 0, 0],
@@ -42,15 +44,15 @@ def test_image_input():
 
 
 def test_orange_stats_serialization():
-    os = model.OrangeStats()
+    os = minput.OrangeStats()
     result = json.loads(os.model_dump_json())
     assert result == {"_cmd": "orange_stats"}
 
 
 def test_bih_load():
-    result = model.BihSizes.model_validate_json(
+    result = moutput.BihSizes.model_validate_json(
         '{"bboxes":8,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":7}'
     )
-    assert result == model.BihSizes(
+    assert result == moutput.BihSizes(
         bboxes=8, inner_nodes=0, leaf_nodes=1, local_volume_ids=7
     )

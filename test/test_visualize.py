@@ -8,7 +8,10 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from celerpy import model, visualize
+from celerpy import visualize
+from celerpy.model.input import ImageInput
+from celerpy.model.output import TraceOutput
+from celerpy.model.types import GeometryEngine
 from celerpy.settings import LogLevel, settings
 
 local_path = Path(__file__).parent
@@ -26,17 +29,17 @@ def test_CelerGeo():
         with pytest.raises(RuntimeError):
             cg.trace()
         (result, img) = cg.trace(
-            model.ImageInput(upper_right=[1, 1, 0], vertical_pixels=4),
-            geometry=model.GeometryEngine.ORANGE,
+            ImageInput(upper_right=[1, 1, 0], vertical_pixels=4),
+            geometry=GeometryEngine.ORANGE,
         )
-        assert isinstance(result, model.TraceOutput)
+        assert isinstance(result, TraceOutput)
         assert img.shape == (4, 4)
         assert img.dtype == np.int32
-        (result, img) = cg.trace(geometry=model.GeometryEngine.ORANGE)
-        assert isinstance(result, model.TraceOutput)
+        (result, img) = cg.trace(geometry=GeometryEngine.ORANGE)
+        assert isinstance(result, TraceOutput)
         assert img.shape == (4, 4)
-        (result, img) = cg.trace(geometry=model.GeometryEngine.geant4)
-        assert isinstance(result, model.TraceOutput)
+        (result, img) = cg.trace(geometry=GeometryEngine.geant4)
+        assert isinstance(result, TraceOutput)
         assert img.shape == (4, 4)
         result = cg.close()
         assert result
@@ -69,6 +72,7 @@ def test_IdMapper():
 
     (img, vol) = map_ids(np.array([-1, 0, -1]), ["foo"])
     assert_array_equal(img, np.array([2, 2, 2]))
+    assert isinstance(img, np.ma.MaskedArray)
     assert_array_equal(img.mask, [True, False, True])
     assert vol == ["bar", "baz", "foo"]
 
