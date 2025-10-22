@@ -10,6 +10,7 @@ compatibility. For new code, prefer importing from the specific modules:
 - celerpy.output: Output and result models
 """
 
+from . import input, output, types
 from .input import (
     ImageInput,
     ModelSetup,
@@ -25,6 +26,9 @@ from .types import (
 )
 
 __all__ = [
+    "input",
+    "output",
+    "types",
     "ImageInput",
     "ModelSetup",
     "OrangeConversionOptions",
