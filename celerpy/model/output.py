@@ -23,10 +23,10 @@ class ImageParams(_Model):
     "Direction vector rendered as 'rightward' in the image"
 
     pixel_width: PositiveFloat
-    "Size of a pixel in the image"
+    "Physical size of a pixel in the image"
 
     dims: Size2
-    "Size of a pixel in the generated image"
+    "Image dimensions (width, height) in pixels"
 
     units: UnitSystem = Field(alias="_units")
 
