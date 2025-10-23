@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from typing import Optional
 
-from pydantic import DirectoryPath
+from pydantic import DirectoryPath, FilePath
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from celerpy.model import LogLevel
@@ -24,17 +24,16 @@ class Settings(BaseSettings):
         use_attribute_docstrings=True,
     )
 
+    prefix_path: Optional[DirectoryPath] = None
+    "Path to the Celeritas build/install directory"
+
+    # CELER_ environment variables
+
     color: bool = True
     "Enable colorized terminal output"
 
     disable_device: bool = False
     "Disable GPU execution even if available"
-
-    g4org_export: Optional[str] = None
-    "Filename base to export converted Geant4 geometry"
-
-    g4org_verbose: bool = False
-    "Filename base to export converted Geant4 geometry"
 
     log: LogLevel = LogLevel.INFO
     "World log level"
@@ -42,8 +41,15 @@ class Settings(BaseSettings):
     log_local: LogLevel = LogLevel.WARNING
     "Self log level"
 
-    prefix_path: Optional[DirectoryPath] = None
-    "Path to the Celeritas build/install directory"
-
     profiling: bool = False
     "Enable NVTX/ROCTX/Perfetto profiling"
+
+    # Geant4->ORANGE conversion
+
+    g4org_options: Optional[FilePath] = None
+    "JSON file with conversion options"
+
+    # Geant4 configuration
+
+    g4_geo_optimize: bool = True
+    "Build Geant4 tracking acceleration structures"

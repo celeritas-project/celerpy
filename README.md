@@ -1,6 +1,6 @@
 > **Warning**
 This repository is experimental and bare-bones at the moment. It's not ready
-for use, but discussions and contributions are welcome!
+for general use, but discussions and contributions are welcome!
 
 # Celeritas Python interface
 

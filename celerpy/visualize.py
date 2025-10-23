@@ -20,7 +20,10 @@ from matplotlib import colormaps
 from matplotlib.axes import Axes as mpl_Axes
 from matplotlib.colors import BoundaryNorm, ListedColormap
 
-from . import model, process
+from . import process
+from .model.input import ImageInput, ModelSetup, TraceInput
+from .model.output import ImageParams, TraceOutput
+from .model.types import GeometryEngine, MemSpace, UnitSystem
 
 __all__ = ["CelerGeo", "Imager", "plot_all_geometry"]
 
@@ -68,9 +71,9 @@ def _register_cmaps():
 
 
 UNIT_LENGTH = {
-    model.UnitSystem.CGS: "cm",
-    model.UnitSystem.CLHEP: "mm",
-    model.UnitSystem.SI: "m",
+    UnitSystem.CGS: "cm",
+    UnitSystem.CLHEP: "mm",
+    UnitSystem.SI: "m",
 }
 
 
@@ -122,26 +125,24 @@ class CelerGeo:
     refactor.
     """
 
-    image: Optional[model.ImageParams]
-    volumes: dict[model.GeometryEngine, list[str]]
+    image: Optional[ImageParams]
+    volumes: dict[GeometryEngine, list[str]]
 
     @classmethod
     def with_setup(cls, *args, **kwargs):
         """Construct, forwarding args to ModelSetup."""
-        return cls(setup=model.ModelSetup(*args, **kwargs))
+        return cls(setup=ModelSetup(*args, **kwargs))
 
     @classmethod
     def from_filename(cls, path: Path):
         """Construct from a geometry filename and default other setup."""
         return cls.with_setup(geometry_file=path)
 
-    def __init__(self, setup: model.ModelSetup):
+    def __init__(self, setup: ModelSetup):
         # Create the process and attach stdin/stdout pipes
         self.process: process.Popen = process.launch("celer-geo")
         # Model setup with actual parameters is echoed back
-        self.setup = process.communicate_model(
-            self.process, setup, model.ModelSetup
-        )
+        self.setup = process.communicate_model(self.process, setup, ModelSetup)
         # Cached image
         self.image = None
         # Cached volume names
@@ -168,9 +169,9 @@ class CelerGeo:
 
     def trace(
         self,
-        image: Optional[model.ImageInput] = None,
+        image: Optional[ImageInput] = None,
         *,
-        geometry: Optional[model.GeometryEngine] = None,
+        geometry: Optional[GeometryEngine] = None,
         **kwargs,
     ):
         """Trace with a geometry, memspace, etc."""
@@ -185,16 +186,14 @@ class CelerGeo:
             volumes = self.volumes.setdefault(geometry, [])
 
         with NamedTemporaryFile(suffix=".bin", mode="w+b") as f:
-            inp = model.TraceInput(
+            inp = TraceInput(
                 geometry=geometry,
                 volumes=(not volumes),
                 bin_file=Path(f.name),
                 image=image,
                 **kwargs,
             )
-            result = process.communicate_model(
-                self.process, inp, model.TraceOutput
-            )
+            result = process.communicate_model(self.process, inp, TraceOutput)
             img = f.read()
 
         # Cache the geometry names and ensure trace has them
@@ -216,9 +215,10 @@ class CelerGeo:
 
         return (result, npimg)
 
-    def close(self, *, timeout: float = 0.25):
+    def close(self, *, timeout: float = 0.25) -> Union[dict[str, dict], str]:
         """Cleanly exit the ray trace loop, returning run statistics if
-        possible."""
+        possible.
+        """
         result = process.communicate(self.process, json.dumps(None))
         with contextlib.suppress(TimeoutExpired):
             self.process.wait(timeout=timeout)
@@ -254,7 +254,7 @@ class LabeledAxes(NamedTuple):
     y: LabeledAxis
 
 
-def calc_image_axes(image: model.ImageParams) -> LabeledAxes:
+def calc_image_axes(image: ImageParams) -> LabeledAxes:
     """Calculate label/min/max for x and y axes from an image result."""
     down = np.array(image.down)
     right = np.array(image.right)
@@ -287,7 +287,7 @@ def calc_image_axes(image: model.ImageParams) -> LabeledAxes:
 class Imager:
     axes: Optional[LabeledAxes] = None
 
-    def __init__(self, celer_geo, image: model.ImageInput):
+    def __init__(self, celer_geo: CelerGeo, image: ImageInput):
         self.celer_geo = celer_geo
         self.image = image
         self.axes = None  # Lazily update
@@ -295,8 +295,8 @@ class Imager:
     def __call__(
         self,
         ax: mpl_Axes,
-        geometry: Optional[model.GeometryEngine] = None,
-        memspace: Optional[model.MemSpace] = None,
+        geometry: Optional[GeometryEngine] = None,
+        memspace: Optional[MemSpace] = None,
         colorbar: Union[bool, None, mpl_Axes] = None,
     ) -> dict[str, Any]:
         (trace_output, img) = self.celer_geo.trace(
@@ -355,10 +355,10 @@ def plot_all_geometry(
     colorbar: bool = True,
     figsize: Optional[tuple] = None,
     engines: Optional[Iterable] = None,
-) -> Mapping[model.GeometryEngine, Any]:
+) -> Mapping[GeometryEngine, Any]:
     """Convenience function for plotting all available geometry types."""
     if engines is None:
-        engines = model.GeometryEngine
+        engines = GeometryEngine
     engines = list(engines)
     width_ratios = [1.0] * len(engines)
     if colorbar:
@@ -389,7 +389,7 @@ def centered_image(
     outdir,
     width: Union[float, tuple[float, float]],
     **kwargs: Any,
-) -> model.ImageInput:
+) -> ImageInput:
     """
     Create an ImageInput with a centered view based on the given parameters.
 
@@ -412,7 +412,7 @@ def centered_image(
 
     Returns
     -------
-    model.ImageInput
+    ImageInput
         The input to ``visualize`` to generate the centered image.
     """
     center = np.asarray(center)
@@ -430,7 +430,7 @@ def centered_image(
     lower_left = (center - offset).tolist()
     upper_right = (center + offset).tolist()
 
-    return model.ImageInput(
+    return ImageInput(
         lower_left=lower_left,
         upper_right=upper_right,
         rightward=xdir.tolist(),
