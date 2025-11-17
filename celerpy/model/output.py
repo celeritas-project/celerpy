@@ -46,7 +46,7 @@ class TraceOutput(_Model):
 class OrangeScalars(_Model):
     """Scalar properties of an ORANGE geometry."""
 
-    max_depth: NonNegativeInt
+    num_univ_levels: NonNegativeInt
     "Maximum universe nesting depth"
 
     max_faces: NonNegativeInt
@@ -55,7 +55,7 @@ class OrangeScalars(_Model):
     max_intersections: NonNegativeInt
     "Maximum number of surface intersections along a ray"
 
-    max_logic_depth: NonNegativeInt
+    max_csg_levels: NonNegativeInt
     "Maximum CSG logic tree depth"
 
     tol: Tolerance
@@ -97,8 +97,8 @@ class OrangeSizes(_Model):
     simple_units: NonNegativeInt
     surface_types: NonNegativeInt
     transforms: NonNegativeInt
-    universe_indices: NonNegativeInt
-    universe_types: NonNegativeInt
+    univ_indices: NonNegativeInt
+    univ_types: NonNegativeInt
     volume_ids: NonNegativeInt
     volume_instance_ids: NonNegativeInt
     volume_records: NonNegativeInt
