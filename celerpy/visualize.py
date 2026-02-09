@@ -399,16 +399,16 @@ def centered_image(
     ----------
     center : array_like
         The center coordinate (real space) of the image.
-    xdir : array_like
-        The direction along the rendered x-axis.
-    outdir : array_like
-        The direction out of the page in the result.
     width : float or array_like with shape (2,)
         If a single float is provided, the image is square and that value is
         used for both the x (horizontal) and y (vertical) dimensions. If a
         tuple or array-like with two elements is
         provided, the first element specifies the width along the x-axis and
         the second element specifies the width along the y-axis.
+    xdir : array_like
+        The direction along the rendered x-axis.
+    outdir : array_like
+        The direction out of the page in the result.
     **kwargs
         Additional keyword arguments passed to the ImageInput constructor.
 
