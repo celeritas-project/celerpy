@@ -73,6 +73,15 @@ class BihSizes(_Model):
 
 
 # orange/OrangeParamsOutput.hh
+class BihMetadata(_Model):
+    """Bounding Interval Hierarchy characteristics."""
+
+    num_finite_bboxes: list[NonNegativeInt]
+    num_infinite_bboxes: list[NonNegativeInt]
+    depth: list[NonNegativeInt]
+
+
+# orange/OrangeParamsOutput.hh
 class UniverseIndexerSizes(_Model):
     """Universe indexer sizes."""
 
@@ -115,6 +124,7 @@ class OrangeParamsOutput(_Model):
     _label: Literal["orange"]
     scalars: OrangeScalars
     sizes: OrangeSizes
+    bih_metadata: BihMetadata
 
 
 class ExceptionDump(_Model):
