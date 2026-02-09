@@ -8,7 +8,7 @@ from typing import Literal, Optional
 from pydantic import Field, NonNegativeInt, PositiveFloat, PositiveInt
 
 from .input import TraceSetup
-from .types import Real3, Size2, Tolerance, UnitSystem, _Model
+from .types import LogicNotation, Real3, Size2, Tolerance, UnitSystem, _Model
 
 
 # geocel/rasterize/ImageData.hh: ImageParamsScalars
@@ -125,6 +125,7 @@ class OrangeParamsOutput(_Model):
     scalars: OrangeScalars
     sizes: OrangeSizes
     bih_metadata: BihMetadata
+    tracking_logic: LogicNotation
 
 
 class ExceptionDump(_Model):
