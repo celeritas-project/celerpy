@@ -19,6 +19,7 @@ import numpy as np
 from matplotlib import colormaps
 from matplotlib.axes import Axes as mpl_Axes
 from matplotlib.colors import BoundaryNorm, ListedColormap
+from numpy.typing import ArrayLike
 
 from . import process
 from .model.input import ImageInput, ModelSetup, TraceInput
@@ -384,10 +385,11 @@ def plot_all_geometry(
 
 
 def centered_image(
-    center,
-    xdir,
-    outdir,
-    width: Union[float, tuple[float, float]],
+    center: ArrayLike = (0, 0, 0),
+    *,
+    width: Union[float, tuple, np.ndarray],
+    xdir: ArrayLike = (0, 0, 1),
+    outdir: ArrayLike = (0, 1, 0),
     **kwargs: Any,
 ) -> ImageInput:
     """
@@ -397,16 +399,16 @@ def centered_image(
     ----------
     center : array_like
         The center coordinate (real space) of the image.
-    xdir : array_like
-        The direction along the rendered x-axis.
-    outdir : array_like
-        The direction out of the page in the result.
-    width : float or tuple of two floats or array_like with shape (2,)
+    width : float or array_like with shape (2,)
         If a single float is provided, the image is square and that value is
         used for both the x (horizontal) and y (vertical) dimensions. If a
         tuple or array-like with two elements is
         provided, the first element specifies the width along the x-axis and
         the second element specifies the width along the y-axis.
+    xdir : array_like
+        The direction along the rendered x-axis.
+    outdir : array_like
+        The direction out of the page in the result.
     **kwargs
         Additional keyword arguments passed to the ImageInput constructor.
 
@@ -415,16 +417,18 @@ def centered_image(
     ImageInput
         The input to ``visualize`` to generate the centered image.
     """
-    center = np.asarray(center)
-    xdir = np.asarray(xdir)
+    center = np.asarray(center, dtype=float)
+    xdir = np.asarray(xdir, dtype=float)
+    outdir = np.asarray(outdir, dtype=float)
     ydir = np.cross(outdir, xdir)
 
-    if isinstance(width, float):
+    if isinstance(width, (float, int)):
         wx, wy = width, width
-    elif len(width) == 2:
-        wx, wy = width
     else:
-        raise ValueError("width must be a float or a length-2 tuple")
+        width_array = np.asarray(width, dtype=float)
+        if width_array.shape != (2,):
+            raise ValueError("width must be a float or a length-2 array")
+        wx, wy = width_array
 
     offset = xdir * (wx / 2) + ydir * (wy / 2)
     lower_left = (center - offset).tolist()
