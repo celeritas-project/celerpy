@@ -84,3 +84,11 @@ class GeometryEngine(StrEnum):
     geant4 = GEANT4
     vecgeom = VECGEOM
     orange = ORANGE
+
+
+# orange/OrangeTypes.hh
+class LogicNotation(StrEnum):
+    """How to inline volumes that are used only once."""
+
+    POSTFIX = auto()
+    INFIX = auto()

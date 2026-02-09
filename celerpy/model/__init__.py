@@ -14,7 +14,7 @@ from . import input, output, types
 from .input import (
     ImageInput,
     ModelSetup,
-    OrangeConversionOptions,
+    OrangeGeoFromGeant,
     TraceInput,
     TraceSetup,
 )
@@ -31,7 +31,7 @@ __all__ = [
     "types",
     "ImageInput",
     "ModelSetup",
-    "OrangeConversionOptions",
+    "OrangeGeoFromGeant",
     "TraceInput",
     "TraceSetup",
     "GeometryEngine",
