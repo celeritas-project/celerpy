@@ -11,6 +11,7 @@ from pydantic_core import to_json
 
 from .types import (
     GeometryEngine,
+    LogicNotation,
     MemSpace,
     Real3,
     Tolerance,
@@ -28,14 +29,9 @@ class InlineSingletons(StrEnum):
     ALL = auto()  # Always
 
 
-# orange/g4org/Options.hh
-class OrangeConversionOptions(_Model):
-    """Construction options for Geant4-to-ORANGE conversion.
-
-    Note that most of these should never be touched when running an actual
-    problem. If the length unit is changed, the resulting geometry is
-    inconsistent with Geant4's scale.
-    """
+# orange/inp/Import.hh
+class OrangeGeoFromCsg(_Model):
+    """Construction options for CSG ORANGE construction."""
 
     # Problem scale and tolerance
 
@@ -44,6 +40,35 @@ class OrangeConversionOptions(_Model):
 
     tol: Optional[Tolerance] = None
     "Construction and tracking tolerance (native units)"
+
+    # Structural conversion
+
+    implicit_parent_boundary: bool = True
+    "Replace lower-level universe 'interior' unit boundaries with 'true'"
+
+    logic: LogicNotation = LogicNotation.INFIX
+    "Construct directly as infix notation"
+
+    # Debug output
+
+    objects_output_file: Optional[str] = None
+    "Write converted Geant4 object structure to a JSON file"
+
+    csg_output_file: Optional[str] = None
+    "Write constructed CSG surfaces and tree to a JSON file"
+
+    org_output_file: Optional[str] = None
+    "Write final org.json to a JSON file"
+
+
+# orange/inp/Import.hh
+class OrangeGeoFromGeant(OrangeGeoFromCsg):
+    """Construction options for Geant4-to-ORANGE conversion.
+
+    Note that most of these should never be touched when running an actual
+    problem. If the length unit is changed, the resulting geometry is
+    inconsistent with Geant4's scale.
+    """
 
     # Structural conversion
 
@@ -59,12 +84,6 @@ class OrangeConversionOptions(_Model):
     inline_unions: bool = True
     "Forcibly copy child volumes that have union boundaries"
 
-    remove_interior: bool = True
-    "Replace 'interior' unit boundaries with 'true' and simplify"
-
-    remove_negated_join: bool = False
-    "Use DeMorgan's law to replace 'not all of' with 'any of not'"
-
     # Debug output
 
     verbose_volumes: bool = False
@@ -72,15 +91,6 @@ class OrangeConversionOptions(_Model):
 
     verbose_structure: bool = False
     "Write output about proto-universes being constructed"
-
-    objects_output_file: Optional[str] = None
-    "Write converted Geant4 object structure to a JSON file"
-
-    csg_output_file: Optional[str] = None
-    "Write constructed CSG surfaces and tree to a JSON file"
-
-    org_output_file: Optional[str] = None
-    "Write final org.json to a JSON file"
 
 
 # celer-geo/GeoInput.hh

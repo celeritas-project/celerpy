@@ -84,3 +84,11 @@ class GeometryEngine(StrEnum):
     geant4 = GEANT4
     vecgeom = VECGEOM
     orange = ORANGE
+
+
+# orange/OrangeTypes.hh
+class LogicNotation(StrEnum):
+    """Logical expression notation used in volume definitions."""
+
+    POSTFIX = auto()
+    INFIX = auto()
