@@ -88,7 +88,7 @@ class GeometryEngine(StrEnum):
 
 # orange/OrangeTypes.hh
 class LogicNotation(StrEnum):
-    """How to inline volumes that are used only once."""
+    """Logical expression notation used in volume definitions."""
 
     POSTFIX = auto()
     INFIX = auto()
