@@ -24,7 +24,7 @@ environments, and lockfiles.
 External dependencies (easily installed through [Homebrew](https://brew.sh/) or
 another package manager):
 - [Poetry](https://python-poetry.org/)
-- Python 3.10 or newer
+- Python 3.11 or newer
 
 After cloning the repository, run `make pre-commit` to:
 - Create and/or update the Poetry-managed virtual environment
@@ -34,7 +34,7 @@ After cloning the repository, run `make pre-commit` to:
 If you have multiple Python versions installed, you can select one explicitly
 for the project:
 ```console
-$ poetry env use python3.10
+$ poetry env use python3.11
 ```
 
 ## Testing and committing
