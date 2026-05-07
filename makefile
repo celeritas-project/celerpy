@@ -13,7 +13,7 @@ poetry-install:
 	poetry install
 
 poetry.lock: pyproject.toml
-	poetry install
+	poetry lock
 
 .PHONY: pre-commit
 pre-commit: poetry.lock
