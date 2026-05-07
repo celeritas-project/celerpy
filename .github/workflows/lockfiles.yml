@@ -29,9 +29,9 @@ jobs:
       - name: Open PR with updated lockfile
         uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: "chore: update poetry.lock"
+          commit-message: "Update poetry.lock"
           branch: chore/update-lockfile
-          title: "chore: update poetry.lock"
+          title: "Update poetry.lock"
           body: "Automated dependency update via `poetry update`."
           delete-branch: true
         env:

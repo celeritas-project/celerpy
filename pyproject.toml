@@ -14,7 +14,7 @@ license = "Apache-2.0"
 name = "celerpy"
 packages = [{include = "celerpy"}]
 readme = "README.md"
-version = "0.0.0"
+version = "0.1.0"
 
 [tool.poetry.dependencies]
 matplotlib = ">=3.7"
