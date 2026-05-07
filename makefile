@@ -40,7 +40,7 @@ style/dapperdata:
 
 .PHONY: style/tomlsort
 style/tomlsort:
-	$(PYTHON_ENV) toml-sort $$(find . -not -path "./.venv/*" -name "*.toml") -i
+	$(PYTHON_ENV) toml-sort $$(find . -name "*.toml") -i
 
 #
 # Testing
@@ -77,7 +77,7 @@ test/dapperdata:
 
 .PHONY: test/tomlsort
 test/tomlsort:
-	$(PYTHON_ENV) toml-sort $$(find . -not -path "./.venv/*" -name "*.toml") --check
+	$(PYTHON_ENV) toml-sort $$(find . -name "*.toml") --check
 
 #
 # Dependencies

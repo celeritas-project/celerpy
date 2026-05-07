@@ -1,6 +1,9 @@
 [build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core"]
+build-backend = "poetry_dynamic_versioning.backend"
+requires = [
+  "poetry-core>=2.0.0,<3.0.0",
+  "poetry-dynamic-versioning>=1.9.1,<2.0.0"
+]
 
 [tool.mypy]
 plugins = [
@@ -14,7 +17,8 @@ license = "Apache-2.0"
 name = "celerpy"
 packages = [{include = "celerpy"}]
 readme = "README.md"
-version = "0.1.0"
+requires-plugins = {poetry-dynamic-versioning = {version = ">=1.9.1,<2.0.0", extras = ["plugin"]}}
+version = "0.0.0"
 
 [tool.poetry.dependencies]
 matplotlib = ">=3.7"
@@ -39,8 +43,12 @@ toml-sort = "0.24.3"
 [tool.poetry.scripts]
 celerpy = "celerpy.cli:app"
 
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
+
 [tool.ruff]
-exclude = [".venv"]
 line-length = 80
 indent-width = 4
 
