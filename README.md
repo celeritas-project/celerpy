@@ -15,24 +15,27 @@ postprocessing utilities.
 Development is a little weird if you're not used to modern python projects,
 especially because [python development and packaging evolves so
 quickly](https://dev.to/farcellier/i-migrate-to-poetry-in-2023-am-i-right--115).
-To isolate the development environment, `pyenv` and `pip`
-install a toolchain locally.
+To isolate the development environment, this project uses
+[Poetry](https://python-poetry.org/) to manage dependencies, virtual
+environments, and lockfiles.
 
 ## Setting up
 
 External dependencies (easily installed through [Homebrew](https://brew.sh/) or
 another package manager):
-- [pyenv](https://github.com/pyenv/pyenv), which will install its own python versions in an isolated environment
+- [Poetry](https://python-poetry.org/)
+- Python 3.10 or newer
 
 After cloning the repository, run `make pre-commit` to:
-- Install the development version of python specified in `.python-version` to
-  your `pyenv` prefix (default: `~/.pyenv`, configurable with the `PYENV_ROOT`
-  variable)
-- Set up a virtual environment in `.venv` that will contain all the development
-  dependencies, including a `celerpy` symlink in its environment that will
-  point to your working copy
-- Install pre-commit hooks that use the tools just installed in your virtual
-  environment.
+- Create and/or update the Poetry-managed virtual environment
+- Install all project and development dependencies from `poetry.lock`
+- Install pre-commit hooks.
+
+If you have multiple Python versions installed, you can select one explicitly
+for the project:
+```console
+$ poetry env use python3.10
+```
 
 ## Testing and committing
 
@@ -43,14 +46,12 @@ automatically. (Use `git commit --no-verify` to disable.)
 The makefile specifies a few useful targets:
 - `style`: apply style fixups to all the python files in development
 - `test`: run tests
-- `pip`: reinstall all the dependencies in your virtual environment
-- `rebuild_dependencies`: update the `requirements` file if you add a new
-  dependency to `pyproject.toml`
+- `install`: install/update dependencies with Poetry
+- `rebuild_dependencies`: update dependencies and refresh `poetry.lock`
 
-You can also test independently once your virtual environment is set up. For
-example, to run a single python test function from a single python test, with
-the most verbose output and sending stdout/stderr to the console, run:
+You can also run tools directly through Poetry. For example, to run a single
+python test function from a single python test, with verbose output and sending
+stdout/stderr to the console, run:
 ```console
-$ . .venv/bin/activate
-$ pytest -vv -s test/test_process.py -k test_context
+$ poetry run pytest -vv -s test/test_process.py -k test_context
 ```
