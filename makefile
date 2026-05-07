@@ -1,24 +1,12 @@
 PACKAGE_SLUG=celerpy
-ifdef CI
-	PYENV_TARGET:=
-	PYTHON_VERSION:=$(shell python --version|cut -d" " -f2)
-else
-	PYENV_TARGET:=pyenv
-	PYTHON_VERSION:=$(shell cat .python-version)
-endif
-
 PYTHON:=poetry run python
 PYTHON_ENV:=poetry run
 
 .PHONY: all
-all: $(PYENV_TARGET) poetry.lock
+all: poetry.lock
 
 .PHONY: install
-install: $(PYENV_TARGET) poetry-install
-
-.PHONY: pyenv
-pyenv:
-	pyenv install --skip-existing $(PYTHON_VERSION)
+install: poetry-install
 
 .PHONY: poetry-install
 poetry-install:
