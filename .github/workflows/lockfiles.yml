@@ -20,13 +20,19 @@ jobs:
         with:
           python-version-file: .python-version
 
-      - name: "Update Lockfiles and Open PR"
-        uses: tedivm/action-python-lockfile-update@v2
-        with:
-          pip_extras: "dev"
-          # This key will bypass workflow limitations to ensure tests are run.
-          # deploy_key: ${{ secrets.WRITEABLE_DEPLOY_KEY }}
+      - name: Install Poetry
+        run: pip install poetry
 
+      - name: Update Lockfile
+        run: poetry update
+
+      - name: Open PR with updated lockfile
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: update poetry.lock"
+          branch: chore/update-lockfile
+          title: "chore: update poetry.lock"
+          body: "Automated dependency update via `poetry update`."
+          delete-branch: true
         env:
-          # Needed to open pull request- automatically set for all actions.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

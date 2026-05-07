@@ -1,59 +1,34 @@
 PACKAGE_SLUG=celerpy
 ifdef CI
 	PYENV_TARGET:=
-	PYENV_PYTHON=python
-	PYTHON_VERSION:=$(shell $(PYENV_PYTHON) --version|cut -d" " -f2)
+	PYTHON_VERSION:=$(shell python --version|cut -d" " -f2)
 else
 	PYENV_TARGET:=pyenv
-	PYENV_PYTHON:=pyenv exec python
 	PYTHON_VERSION:=$(shell cat .python-version)
 endif
 
-ifeq ($(USE_SYSTEM_PYTHON), true)
-	PYTHON_PACKAGE_PATH:=$(shell $(PYENV_PYTHON) -c "import sys; print(sys.path[-1])")
-	PYTHON_ENV:=
-	VENV_TARGET:=
-else
-	PYTHON_SHORT_VERSION:=$(shell echo $(PYTHON_VERSION) | grep -o '[0-9].[0-9]*')
-	PYTHON_PACKAGE_PATH:=.venv/lib/python$(PYTHON_SHORT_VERSION)/site-packages
-	PYTHON_ENV:=  . .venv/bin/activate &&
-	VENV_TARGET:= .venv
-endif
-
-PYTHON:=$(PYTHON_ENV) python
-
-# Used to confirm that pip has run at least once
-BUILD_DIR:=$(PYTHON_PACKAGE_PATH)/build
+PYTHON:=poetry run python
+PYTHON_ENV:=poetry run
 
 .PHONY: all
-all: $(PYENV_TARGET) $(BUILD_DIR)
+all: $(PYENV_TARGET) poetry.lock
 
 .PHONY: install
-install: $(PYENV_TARGET) $(VENV_TARGET) pip
+install: $(PYENV_TARGET) poetry-install
 
 .PHONY: pyenv
 pyenv:
 	pyenv install --skip-existing $(PYTHON_VERSION)
 
-.venv:
-	$(PYENV_PYTHON) -m venv .venv
+.PHONY: poetry-install
+poetry-install:
+	poetry install
 
+poetry.lock: pyproject.toml
+	poetry install
 
-# Note that CI is defined when running through github actions
-.PHONY: pip
-pip: $(VENV_TARGET) pip-install
-
-.PHONY: pip-install
-pip-install:
-ifdef CI
-	$(PYTHON) -m pip install -r requirements-dev.txt
-else
-	$(PYTHON) -m pip install -e .[dev]
-endif
-
-$(BUILD_DIR): $(VENV_TARGET) pip-install
 .PHONY: pre-commit
-pre-commit: $(BUILD_DIR)
+pre-commit: poetry.lock
 	$(PYTHON_ENV) pre-commit install
 
 #
@@ -83,7 +58,7 @@ style/tomlsort:
 # Testing
 #
 .PHONY: test
-test: $(BUILD_DIR) test/all
+test: poetry.lock test/all
 
 .PHONY: test/all
 test/all: test/pytest test/ruff test/black test/mypy test/dapperdata test/tomlsort
@@ -121,21 +96,11 @@ test/tomlsort:
 #
 .PHONY: rebuild_dependencies
 rebuild_dependencies:
-	$(PYTHON) -m uv pip compile --output-file=requirements.txt pyproject.toml
-	$(PYTHON) -m uv pip compile --output-file=requirements-dev.txt --extra=dev pyproject.toml
-
-.PHONY: dependencies
-dependencies: requirements.txt requirements-dev.txt
-
-requirements.txt: $(BUILD_DIR) pyproject.toml
-	$(PYTHON) -m uv pip compile --upgrade --output-file=requirements.txt pyproject.toml
-
-requirements-dev.txt: $(BUILD_DIR) pyproject.toml
-	$(PYTHON) -m uv pip compile --upgrade --output-file=requirements-dev.txt --extra=dev pyproject.toml
+	poetry update
 
 #
 # Packaging
 #
 .PHONY: build
-build: $(BUILD_DIR)
-	$(PYTHON) -m build
+build: poetry.lock
+	poetry build
