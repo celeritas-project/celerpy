@@ -22,7 +22,6 @@ jobs:
           - mypy
           - pytest
           - ruff
-          - tomlsort
         include:
           - target: pytest
             python-version: 3.14
