@@ -12,10 +12,11 @@ env:
 
 jobs:
   test:
-    name: ${{matrix.target}}
+    name: ${{matrix.python-version}}/${{matrix.target}}
     strategy:
       fail-fast: false
       matrix:
+        python-version: ["3.11"]
         target:
           - black
           - dapperdata
@@ -23,12 +24,16 @@ jobs:
           - pytest
           - ruff
           - tomlsort
+        include:
+          - target: pytest
+            python-version: 3.14
 
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/setup-repo
-      - name: Install Dependencies
-        run: poetry install
+      - name: "Checkout repo"
+        uses: actions/checkout@v5
+      - name: "Set up dependencies and install"
+        uses: ./.github/actions/setup-poetry
       - name: Test
         run: make test/${{matrix.target}}
 

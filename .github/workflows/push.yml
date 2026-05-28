@@ -13,8 +13,8 @@ concurrency:
 jobs:
   pypi:
     uses: ./.github/workflows/pypi.yml
-      #  doc:
-      #    uses: ./.github/workflows/doc.yml
+#  doc:
+#    uses: ./.github/workflows/doc.yml
   all:
     needs: [pypi]
     runs-on: ubuntu-latest

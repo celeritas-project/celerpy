@@ -11,9 +11,9 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: "Checkout repo"
+        uses: actions/checkout@v5
       - uses: ./.github/actions/setup-repo
-      - name: Install Dependencies
-        run: poetry install
       - name: Build Wheel
         run: make build
       - name: Publish package

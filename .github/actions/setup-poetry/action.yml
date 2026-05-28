@@ -1,0 +1,41 @@
+name: Setup the dependencies
+description: Check out the repo, install pinned Python and Poetry version, make deps
+
+inputs:
+  python-version:
+    description: Python version to install
+    required: false
+    default: "3.11"
+  poetry-version:
+    description: Poetry version to install
+    required: false
+    default: "2.1.3"
+
+runs:
+  using: composite
+  steps:
+    - name: Install python
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: ${{ inputs.python-version }}
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    - name: Install dependencies
+      if: ${{steps.cached-poetry-dependencies.outputs.cache-hit}}
+      shell: sh
+      run: poetry install --no-interaction --no-root
+    - name: Install project
+      shell: sh
+      run: poetry install --no-interaction
+
+# vim: set nowrap tw=100:
