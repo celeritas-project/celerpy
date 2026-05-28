@@ -15,11 +15,13 @@ runs:
   using: composite
   steps:
     - name: Install python
+      id: setup-python
       uses: actions/setup-python@v6
       with:
         python-version: ${{ inputs.python-version }}
     - name: Install poetry
       uses: snok/install-poetry@v1
+      id: setup-poetry
       with:
         version: ${{ inputs.poetry-version }}
         virtualenvs-create: true
@@ -31,7 +33,7 @@ runs:
         path: .venv
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
     - name: Install dependencies
-      if: ${{steps.cached-poetry-dependencies.outputs.cache-hit == 'true'}} # inexact = false
+      if: ${{steps.cached-poetry-dependencies.outputs.cache-hit != 'true'}} # inexact = false
       shell: sh
       run: poetry install --no-interaction --no-root
     - name: Install project

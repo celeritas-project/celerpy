@@ -39,17 +39,7 @@ $ poetry env use python3.11
 
 ## Versioning
 
-Package versions are generated dynamically from git tags using
-`poetry-dynamic-versioning`.
-
-- Tagged commits produce release versions (for example `v0.2.0` -> `0.2.0`)
-- Untagged commits use a derived pre-release/dev form from git history
-
-To create a new release tag:
-```console
-$ git tag v0.2.0
-$ git push origin v0.2.0
-```
+Not yet implemented.
 
 ## Testing and committing
 
