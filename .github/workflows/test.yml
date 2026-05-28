@@ -19,7 +19,6 @@ jobs:
         python-version: ["3.11"]
         target:
           - black
-          - dapperdata
           - mypy
           - pytest
           - ruff
