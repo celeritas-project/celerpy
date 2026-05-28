@@ -20,7 +20,7 @@ pre-commit: poetry.lock
 # Formatting
 #
 .PHONY: style
-style: style/format style/check style/dapperdata style/tomlsort
+style: style/format style/check style/tomlsort
 
 # NOTE: formatting must occur before style check
 .PHONY: style/format
@@ -30,10 +30,6 @@ style/format:
 .PHONY: style/check
 style/check:
 	$(PYTHON) -m ruff check . --fix
-
-.PHONY: style/dapperdata
-style/dapperdata:
-	$(PYTHON) -m dapperdata.cli pretty . --no-dry-run
 
 .PHONY: style/tomlsort
 style/tomlsort:
@@ -46,7 +42,7 @@ style/tomlsort:
 test: poetry.lock test/all
 
 .PHONY: test/all
-test/all: test/pytest test/ruff test/black test/mypy test/dapperdata test/tomlsort
+test/all: test/pytest test/ruff test/black test/mypy test/tomlsort
 
 .PHONY: test/pytest
 test/pytest:
@@ -67,10 +63,6 @@ test/black:
 .PHONY: test/mypy
 test/mypy:
 	$(PYTHON) -m mypy ${PACKAGE_SLUG}
-
-.PHONY: test/dapperdata
-test/dapperdata:
-	$(PYTHON) -m dapperdata.cli pretty .
 
 .PHONY: test/tomlsort
 test/tomlsort:
