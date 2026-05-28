@@ -6,10 +6,7 @@ PYTHON_ENV:=poetry run
 all: poetry.lock
 
 .PHONY: install
-install: poetry-install
-
-.PHONY: poetry-install
-poetry-install:
+install:
 	poetry install
 
 poetry.lock: pyproject.toml

@@ -11,17 +11,9 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Install Poetry
-        run: pip install poetry==1.8.3
+      - uses: ./.github/actions/setup-repo
       - name: Install Dependencies
-        run: make install
+        run: poetry install
       - name: Build Wheel
         run: make build
       - name: Publish package
