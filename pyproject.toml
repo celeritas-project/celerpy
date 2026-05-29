@@ -23,20 +23,18 @@ readme = "README.md"
 requires-python = ">=3.11,<4.0"
 version = "0.0.0" # Automatically updated via poetry-dynamic-versioning
 
-# Developer dependencies: note that style is handled by pre-commit
-[project.group.dev.dependencies]
-mypy = ">=1.18"
-pre-commit = ">=4.3"
-pytest = ">=8.4"
-pytest-cov = ">=7"
-
 [project.scripts]
 celerpy = "celerpy.cli:app"
 
 [tool.mypy]
-plugins = [
-  "pydantic.mypy"
-]
+plugins = ["pydantic.mypy"]
+
+# Developer dependencies: note that style is handled by pre-commit
+[tool.poetry.group.dev.dependencies]
+mypy = ">=1.18"
+pre-commit = ">=4.3"
+pytest = ">=8.4"
+pytest-cov = ">=7"
 
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = {extras = ["plugin"], version = ">=1.0.0,<2.0.0"}
