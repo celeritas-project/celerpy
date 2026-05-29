@@ -1,48 +1,48 @@
 PACKAGE_SLUG=celerpy
-PYTHON:=poetry run python
-PYTHON_ENV:=poetry run
+RUN:=poetry run
 
 .PHONY: all
 all: poetry.lock
+
+poetry.lock: pyproject.toml
+	poetry lock
+
+#
+# Development
+#
+.PHONY: dependencies
+dependencies: poetry.lock
+	poetry install --with=dev --with=test --no-root
+
+.PHONY: test-dependencies
+test-dependencies: poetry.lock
+	poetry install --without=dev --with=test --no-root
+
+.PHONY: setup
+pre-commit: dependencies
+	$(RUN) pre-commit install
 
 .PHONY: install
 install:
 	poetry install
 
-poetry.lock: pyproject.toml
-	poetry lock
-
-.PHONY: pre-commit
-pre-commit: poetry.lock
-	$(PYTHON_ENV) pre-commit install
-
 #
 # Testing
 #
 .PHONY: test
-test: poetry.lock test/all
-
-.PHONY: test/all
-test/all: test/pytest-cov test/mypy
+test: test/pytest test/mypy
 
 .PHONY: test/pytest
-test/pytest:
-	$(PYTHON) -m pytest test
+test/pytest: test-dependencies
+	$(RUN) python -m pytest test/
 
 .PHONY: test/pytest-cov
-test/pytest-cov:
-	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing test
+test/pytest-cov: test-dependencies
+	$(RUN) python -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing test/
 
 .PHONY: test/mypy
-test/mypy:
-	$(PYTHON) -m mypy ${PACKAGE_SLUG}
-
-#
-# Dependencies
-#
-.PHONY: rebuild_dependencies
-rebuild_dependencies:
-	poetry update
+test/mypy: test-dependencies
+	$(RUN) python -m mypy ${PACKAGE_SLUG}
 
 #
 # Packaging

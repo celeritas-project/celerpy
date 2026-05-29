@@ -18,7 +18,6 @@ description = "Python front end to Celeritas"
 dynamic = ["version"]
 license = "Apache-2.0"
 name = "celerpy"
-packages = [{include = "celerpy"}]
 readme = "README.md"
 requires-python = ">=3.11,<4.0"
 version = "0.0.0" # Automatically updated via poetry-dynamic-versioning
@@ -29,8 +28,9 @@ celerpy = "celerpy.cli:app"
 [tool.mypy]
 plugins = ["pydantic.mypy"]
 
-# Developer dependencies: note that style is handled by pre-commit
+# Developer dependencies: note that style (ruff, toml-sort) is handled by pre-commit
 [tool.poetry.group.dev]
+optional = true
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=4.3"

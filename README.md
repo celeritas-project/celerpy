@@ -12,50 +12,35 @@ postprocessing utilities.
 
 # Development
 
-Development is a little weird if you're not used to modern python projects,
-especially because [python development and packaging evolves so
-quickly](https://dev.to/farcellier/i-migrate-to-poetry-in-2023-am-i-right--115).
 To isolate the development environment, this project uses
 [Poetry](https://python-poetry.org/) to manage dependencies, virtual
-environments, and lockfiles.
+environments, and lockfiles. A persistent development+CI environment is encoded
+into the distributed `poetry.lock` file. A simple `makefile` is included to
+configure and run for those not familiar with a Poetry envirnment workflow.
 
-## Setting up
+## Setting up the first time
 
-External dependencies (easily installed through [Homebrew](https://brew.sh/) or
-another package manager):
-- [Poetry](https://python-poetry.org/)
-- Python 3.11 or newer
+Install Poetry using [Homebrew](https://brew.sh/) or [pipx](https://pipx.pypa.io/stable/how-to/install-pipx/).
 
-After cloning the repository, run `make pre-commit` to:
-- Create and/or update the Poetry-managed virtual environment
-- Install all project and development dependencies from `poetry.lock`
-- Install pre-commit hooks.
+After cloning the celerpy repository and installing poetry, run `make setup` to:
+- install all project and development dependencies from `poetry.lock`, and
+- install pre-commit hooks.
 
-If you have multiple Python versions installed, you can select one explicitly
-for the project:
+## Development and testing
+
+Activating the poetry environment will load the python version and all development dependencies. It is faster than manually invoking `poetry run` or using the included makefile.
+
 ```console
-$ poetry env use python3.11
-```
-
-## Versioning
-
-Not yet implemented.
-
-## Testing and committing
-
-At this point you can modify the python code and run tests *without* having to
-reinstall the dependencies, and every `git commit` will run the tests
-automatically. (Use `git commit --no-verify` to disable.)
-
-The makefile specifies a few useful targets:
-- `style`: apply style fixups to all the python files in development
-- `test`: run tests
-- `install`: install/update dependencies with Poetry
-- `rebuild_dependencies`: update dependencies and refresh `poetry.lock`
-
-You can also run tools directly through Poetry. For example, to run a single
-python test function from a single python test, with verbose output and sending
-stdout/stderr to the console, run:
-```console
+$ eval $(poetry env activate)
+$ pytest test/
+$ mypy celerpy
 $ poetry run pytest -vv -s test/test_process.py -k test_context
 ```
+
+## Pre-commit hooks
+
+Style and linting should be performed automatically at every `git commit` after you run `make pre-commit`. They can also be invoked manually with `pre-commit run`. Use `git commit --no-verify` to disable temporarily for a particular commit. Pull requests automatically have their style checked and fixed via `pre-commit.ci`.
+
+## Release/versioning
+
+Not yet implemented:
