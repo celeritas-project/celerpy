@@ -16,11 +16,17 @@ setup_signals()
 celer_log = environ.get("CELER_LOG")
 assert celer_log == "debug", f"Expected CELER_LOG=debug, got {celer_log}"
 celer_log_local = environ.get("CELER_LOG_LOCAL")
-assert celer_log_local == "warning", f"Expected CELER_LOG_LOCAL=warning, got {celer_log_local}"
+assert celer_log_local == "warning", (
+    f"Expected CELER_LOG_LOCAL=warning, got {celer_log_local}"
+)
 g4org_opts = environ.get("G4ORG_OPTIONS")
-assert g4org_opts and Path(g4org_opts).is_file(), f"Expected G4ORG_OPTIONS=1, got {g4org_opts}"
+assert g4org_opts and Path(g4org_opts).is_file(), (
+    f"Expected G4ORG_OPTIONS=1, got {g4org_opts}"
+)
 profiling = environ.get("CELER_ENABLE_PROFILING")
-assert profiling == "True", f"Expected CELER_ENABLE_PROFILING=1, got {profiling}"
+assert profiling == "True", (
+    f"Expected CELER_ENABLE_PROFILING=1, got {profiling}"
+)
 
 
 # Read the initial command and echo it (with version)
@@ -46,7 +52,7 @@ expect_trace(
 )
 
 cmd = read_input()
-assert cmd == None
+assert cmd is None
 dump(
     {
         "runtime": {"device": None, "kernels": [], "version": "0.7.0-dev"},

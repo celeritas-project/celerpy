@@ -1,7 +1,7 @@
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from pydantic import ValidationError
@@ -31,7 +31,7 @@ def print_version(value: bool):
 @app.command()
 def main(
     version: Annotated[
-        Optional[bool],
+        bool | None,
         typer.Option("--version", callback=print_version, is_eager=True),
     ] = None,
 ):

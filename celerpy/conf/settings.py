@@ -1,7 +1,6 @@
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level LICENSE file for details.
 # SPDX-License-Identifier: Apache-2.0
-from typing import Optional
 
 from pydantic import DirectoryPath, FilePath
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,7 +23,7 @@ class Settings(BaseSettings):
         use_attribute_docstrings=True,
     )
 
-    prefix_path: Optional[DirectoryPath] = None
+    prefix_path: DirectoryPath | None = None
     "Path to the Celeritas build/install directory"
 
     # CELER_ environment variables
@@ -46,7 +45,7 @@ class Settings(BaseSettings):
 
     # Geant4->ORANGE conversion
 
-    g4org_options: Optional[FilePath] = None
+    g4org_options: FilePath | None = None
     "JSON file with conversion options"
 
     # Geant4 configuration

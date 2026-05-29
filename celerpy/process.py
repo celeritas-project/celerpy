@@ -7,7 +7,7 @@ import contextlib
 import os
 from signal import SIGINT, SIGKILL, SIGTERM
 from subprocess import PIPE, Popen, TimeoutExpired
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
 
@@ -81,7 +81,7 @@ def close(process: P, *, timeout: float = 0.1):
     return out
 
 
-def communicate(process: P, line: str) -> Optional[str]:
+def communicate(process: P, line: str) -> str | None:
     """Write a line and read a line of response.
 
     For this to work, the child application *must* write a single line of
