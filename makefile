@@ -17,44 +17,25 @@ pre-commit: poetry.lock
 	$(PYTHON_ENV) pre-commit install
 
 #
-# Formatting
-#
-.PHONY: style
-style: style/format style/check
-
-# NOTE: formatting must occur before style check
-.PHONY: style/format
-style/format:
-	$(PYTHON) -m ruff format .
-
-.PHONY: style/check
-style/check:
-	$(PYTHON) -m ruff check . --fix
-
-#
 # Testing
 #
 .PHONY: test
 test: poetry.lock test/all
 
 .PHONY: test/all
-test/all: test/pytest test/ruff test/black test/mypy
+test/all: test/pytest test/ruff test/mypy
 
 .PHONY: test/pytest
 test/pytest:
-	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing test
+	$(PYTHON) -m pytest
 
-.PHONY: test/pytest-loud
+.PHONY: test/coverage
 test/pytest-loud:
-	$(PYTHON) -m pytest -s --cov=./${PACKAGE_SLUG} --cov-report=term-missing test
+	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing test
 
 .PHONY: test/ruff
 test/ruff:
 	$(PYTHON) -m ruff check
-
-.PHONY: test/black
-test/black:
-	$(PYTHON) -m ruff format . --check
 
 .PHONY: test/mypy
 test/mypy:

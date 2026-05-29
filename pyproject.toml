@@ -34,7 +34,6 @@ pre-commit = ">=4.3"
 pytest = ">=8.4"
 pytest-cov = ">=7"
 ruff = ">=0.13"
-toml-sort = ">=0.24"
 
 [tool.poetry.scripts]
 celerpy = "celerpy.cli:app"

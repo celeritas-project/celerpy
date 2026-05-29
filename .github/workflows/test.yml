@@ -18,12 +18,11 @@ jobs:
       matrix:
         python-version: ["3.11"]
         target:
-          - black
           - mypy
           - pytest
           - ruff
         include:
-          - target: pytest
+          - target: pytest-cov
             python-version: 3.14
 
     runs-on: ubuntu-latest
