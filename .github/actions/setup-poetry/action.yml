@@ -34,7 +34,7 @@ runs:
       uses: actions/cache@v5
       with:
         path: poetry.lock
-        key: lock-${{ inputs.poetry-version }}-${{ hashFiles('pyproject.toml') }}
+        key: lock-${{ hashFiles('pyproject.toml') }}
     - name: Lock dependencies when uncached
       if: ${{steps.cached-lock.outputs.cache-hit != 'true'}} # inexact = false
       shell: sh
@@ -48,9 +48,9 @@ runs:
     - name: Install dependencies when uncached
       if: ${{steps.cached-venv.outputs.cache-hit != 'true'}} # inexact = false
       shell: sh
-      run: poetry -v install --no-interaction --no-root --with test
+      run: poetry -v install --no-interaction --no-root --with test --without dev
     - name: Install project
       shell: sh
-      run: poetry -v install --no-interaction
+      run: poetry -v install --no-interaction --only-root
 
 # vim: set nowrap tw=100:
