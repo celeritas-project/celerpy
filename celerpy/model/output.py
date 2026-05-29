@@ -79,6 +79,7 @@ class BihMetadata(_Model):
     num_finite_bboxes: list[NonNegativeInt]
     num_infinite_bboxes: list[NonNegativeInt]
     depth: list[NonNegativeInt]
+    structure: Optional[list[dict]] = None
 
 
 # orange/OrangeParamsOutput.hh
