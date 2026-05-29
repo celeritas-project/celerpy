@@ -30,9 +30,17 @@ celerpy = "celerpy.cli:app"
 plugins = ["pydantic.mypy"]
 
 # Developer dependencies: note that style is handled by pre-commit
+[tool.poetry.group.dev]
+include-groups = [
+  "test"
+]
+
 [tool.poetry.group.dev.dependencies]
-mypy = ">=1.18"
 pre-commit = ">=4.3"
+
+# Testing
+[tool.poetry.group.test.dependencies]
+mypy = ">=1.18"
 pytest = ">=8.4"
 pytest-cov = ">=7"
 

@@ -23,9 +23,9 @@ runs:
       id: setup-poetry
       shell: sh
       run: |
-        printf "::debug::%s %s\n" "Python location" "$(command -v python)"
+        printf "\033[34;1m%s\033[0m: %s\n" "Python location" "$(command -v python)"
         pipx install --python python poetry==${{ inputs.poetry-version }}
-        printf "::debug::%s %s\n" "Poetry location" "$(command -v poetry)"
+        printf "\033[34;1m%s\033[0m: %s\n" "Poetry location" "$(command -v poetry)"
         # Configure dependencies to install in venv
         poetry config --no-interaction virtualenvs.create true
         poetry config --no-interaction virtualenvs.in-project true
@@ -48,9 +48,9 @@ runs:
     - name: Install dependencies when uncached
       if: ${{steps.cached-venv.outputs.cache-hit != 'true'}} # inexact = false
       shell: sh
-      run: poetry install --no-interaction --no-root
+      run: poetry -v install --no-interaction --no-root --with test
     - name: Install project
       shell: sh
-      run: poetry install --no-interaction
+      run: poetry -v install --no-interaction
 
 # vim: set nowrap tw=100:
