@@ -31,9 +31,6 @@ plugins = ["pydantic.mypy"]
 
 # Developer dependencies: note that style is handled by pre-commit
 [tool.poetry.group.dev]
-include-groups = [
-  "test"
-]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=4.3"
