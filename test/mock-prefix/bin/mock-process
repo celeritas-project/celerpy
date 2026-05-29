@@ -2,11 +2,11 @@
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-"""Mock a 'JSON lines' style process.
+"""Mock a 'JSON lines' style process."""
 
-"""
-from mockutils import log, dump, read_input, setup_signals
 import sys
+
+from mockutils import dump, log, read_input, setup_signals
 
 setup_signals()
 
@@ -14,7 +14,7 @@ cmd = input()
 log("read command", repr(cmd))
 dump("success")
 log("entering loop")
-while (cmd := read_input()) != None:
+while (cmd := read_input()) is not None:
     log("read command", cmd)
     if cmd == "abort":
         log("Aborting!")
