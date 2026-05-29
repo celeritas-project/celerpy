@@ -67,7 +67,7 @@ class BihSizes(_Model):
     """Bounding Interval Hierarchy tree sizes."""
 
     bboxes: NonNegativeInt
-    inner_nodes: NonNegativeInt
+    internal_nodes: NonNegativeInt
     leaf_nodes: NonNegativeInt
     local_volume_ids: NonNegativeInt
 
@@ -79,6 +79,7 @@ class BihMetadata(_Model):
     num_finite_bboxes: list[NonNegativeInt]
     num_infinite_bboxes: list[NonNegativeInt]
     depth: list[NonNegativeInt]
+    structure: Optional[list[dict]] = None
 
 
 # orange/OrangeParamsOutput.hh
