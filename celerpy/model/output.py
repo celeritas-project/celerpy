@@ -67,7 +67,7 @@ class BihSizes(_Model):
     """Bounding Interval Hierarchy tree sizes."""
 
     bboxes: NonNegativeInt
-    inner_nodes: NonNegativeInt
+    internal_nodes: NonNegativeInt
     leaf_nodes: NonNegativeInt
     local_volume_ids: NonNegativeInt
 
