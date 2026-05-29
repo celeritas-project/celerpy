@@ -23,14 +23,14 @@ pre-commit: poetry.lock
 test: poetry.lock test/all
 
 .PHONY: test/all
-test/all: test/pytest test/mypy
+test/all: test/pytest-cov test/mypy
 
 .PHONY: test/pytest
 test/pytest:
-	$(PYTHON) -m pytest
+	$(PYTHON) -m pytest test
 
-.PHONY: test/coverage
-test/pytest-loud:
+.PHONY: test/pytest-cov
+test/pytest-cov:
 	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing test
 
 .PHONY: test/mypy
