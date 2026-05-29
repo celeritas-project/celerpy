@@ -12,45 +12,35 @@ postprocessing utilities.
 
 # Development
 
-Development is a little weird if you're not used to modern python projects,
-especially because [python development and packaging evolves so
-quickly](https://dev.to/farcellier/i-migrate-to-poetry-in-2023-am-i-right--115).
-To isolate the development environment, `pyenv` and `pip`
-install a toolchain locally.
+To isolate the development environment, this project uses
+[Poetry](https://python-poetry.org/) to manage dependencies, virtual
+environments, and lockfiles. A persistent development+CI environment is encoded
+into the distributed `poetry.lock` file. A simple `makefile` is included to
+configure and run for those not familiar with a Poetry envirnment workflow.
 
-## Setting up
+## Setting up the first time
 
-External dependencies (easily installed through [Homebrew](https://brew.sh/) or
-another package manager):
-- [pyenv](https://github.com/pyenv/pyenv), which will install its own python versions in an isolated environment
+Install Poetry using [Homebrew](https://brew.sh/) or [pipx](https://pipx.pypa.io/stable/how-to/install-pipx/).
 
-After cloning the repository, run `make pre-commit` to:
-- Install the development version of python specified in `.python-version` to
-  your `pyenv` prefix (default: `~/.pyenv`, configurable with the `PYENV_ROOT`
-  variable)
-- Set up a virtual environment in `.venv` that will contain all the development
-  dependencies, including a `celerpy` symlink in its environment that will
-  point to your working copy
-- Install pre-commit hooks that use the tools just installed in your virtual
-  environment.
+After cloning the celerpy repository and installing poetry, run `make setup` to:
+- install all project and development dependencies from `poetry.lock`, and
+- install pre-commit hooks.
 
-## Testing and committing
+## Development and testing
 
-At this point you can modify the python code and run tests *without* having to
-reinstall the dependencies, and every `git commit` will run the tests
-automatically. (Use `git commit --no-verify` to disable.)
+Activating the poetry environment will load the python version and all development dependencies. It is faster than manually invoking `poetry run` or using the included makefile.
 
-The makefile specifies a few useful targets:
-- `style`: apply style fixups to all the python files in development
-- `test`: run tests
-- `pip`: reinstall all the dependencies in your virtual environment
-- `rebuild_dependencies`: update the `requirements` file if you add a new
-  dependency to `pyproject.toml`
-
-You can also test independently once your virtual environment is set up. For
-example, to run a single python test function from a single python test, with
-the most verbose output and sending stdout/stderr to the console, run:
 ```console
-$ . .venv/bin/activate
-$ pytest -vv -s test/test_process.py -k test_context
+$ eval $(poetry env activate)
+$ pytest test/
+$ mypy celerpy
+$ poetry run pytest -vv -s test/test_process.py -k test_context
 ```
+
+## Pre-commit hooks
+
+Style and linting should be performed automatically at every `git commit` after you run `make pre-commit`. They can also be invoked manually with `pre-commit run`. Use `git commit --no-verify` to disable temporarily for a particular commit. Pull requests automatically have their style checked and fixed via `pre-commit.ci`.
+
+## Release/versioning
+
+Not yet implemented:

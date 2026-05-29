@@ -4,6 +4,7 @@ repos:
     hooks:
       - id: check-added-large-files
         args: ['--maxkb=100']
+        exclude: '^poetry.lock$'
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-shebang-scripts-are-executable

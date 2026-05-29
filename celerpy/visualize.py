@@ -39,7 +39,7 @@ class WrappingListedColormap(ListedColormap):
     through the available colors and emit a warning.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._warned: bool = False
 
@@ -87,8 +87,8 @@ class IdMapper:
     (so that new volumes "appear").
     """
 
-    def __init__(self):
-        self.id_to_volume = []
+    def __init__(self) -> None:
+        self.id_to_volume: list[str] = []
         self.volume_to_id = ReverseIndexDict(self.id_to_volume)
 
     def clear(self):

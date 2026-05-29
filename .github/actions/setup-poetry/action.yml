@@ -1,0 +1,46 @@
+name: Setup the dependencies
+description: Check out the repo, install pinned Python and Poetry version, make deps
+
+inputs:
+  python-version:
+    description: Python version to install
+    required: false
+    default: "3.11"
+  poetry-version:
+    description: Poetry version to install
+    required: false
+    default: "2.3.3"
+
+runs:
+  using: composite
+  steps:
+    - name: Install python
+      id: setup-python
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install poetry
+      id: setup-poetry
+      shell: sh
+      run: |
+        printf "\033[34;1m%s\033[0m: %s\n" "Python location" "$(command -v python)"
+        pipx install --python python poetry==${{ inputs.poetry-version }}
+        printf "\033[34;1m%s\033[0m: %s\n" "Poetry location" "$(command -v poetry)"
+        # Configure dependencies to install in venv
+        poetry config --no-interaction virtualenvs.create true
+        poetry config --no-interaction virtualenvs.in-project true
+    - name: Cache venv for OS, python, lockfile
+      id: cached-venv
+      uses: actions/cache@v5
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
+    - name: Install dependencies when uncached
+      if: ${{steps.cached-venv.outputs.cache-hit != 'true'}} # inexact = false
+      shell: sh
+      run: poetry -v install --no-interaction --no-root --with test --without dev
+    - name: Install project
+      shell: sh
+      run: poetry -v install --no-interaction --only-root
+
+# vim: set nowrap tw=100:

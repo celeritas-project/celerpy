@@ -22,9 +22,9 @@ def load_settings():
 
 def print_version(value: bool):
     if value:
-        from . import _version
+        from . import __version__
 
-        typer.echo(_version.version)
+        typer.echo(__version__)
         raise typer.Exit()
 
 
