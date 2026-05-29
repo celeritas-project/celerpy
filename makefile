@@ -23,7 +23,7 @@ pre-commit: poetry.lock
 test: poetry.lock test/all
 
 .PHONY: test/all
-test/all: test/pytest test/ruff test/mypy
+test/all: test/pytest test/mypy
 
 .PHONY: test/pytest
 test/pytest:
@@ -32,10 +32,6 @@ test/pytest:
 .PHONY: test/coverage
 test/pytest-loud:
 	$(PYTHON) -m pytest --cov=./${PACKAGE_SLUG} --cov-report=term-missing test
-
-.PHONY: test/ruff
-test/ruff:
-	$(PYTHON) -m ruff check
 
 .PHONY: test/mypy
 test/mypy:

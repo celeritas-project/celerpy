@@ -17,7 +17,7 @@ license = "Apache-2.0"
 name = "celerpy"
 packages = [{include = "celerpy"}]
 readme = "README.md"
-requires-plugins = {poetry-dynamic-versioning = {version = ">=1.9.1,<2.0.0", extras = ["plugin"]}}
+requires-plugins = {poetry-dynamic-versioning = {extras = ["plugin"], version = ">=1.9.1,<2.0.0"}}
 version = "0.1.0-dev"
 
 [tool.poetry.dependencies]
@@ -28,24 +28,24 @@ pydantic-settings = ">=2.0,<3.0"
 python = ">=3.11,<4.0"
 typer = "*"
 
+# Developer dependencies: note that style is handled by pre-commit
 [tool.poetry.group.dev.dependencies]
 mypy = ">=1.18"
 pre-commit = ">=4.3"
 pytest = ">=8.4"
 pytest-cov = ">=7"
-ruff = ">=0.13"
 
 [tool.poetry.scripts]
 celerpy = "celerpy.cli:app"
 
 [tool.poetry-dynamic-versioning]
 enable = true
-vcs = "git"
 style = "semver"
+vcs = "git"
 
 [tool.ruff]
-line-length = 80
 indent-width = 4
+line-length = 80
 
 [tool.ruff.lint]
 ignore = [
@@ -55,16 +55,14 @@ ignore = [
   "UP045"
 ]
 select = [
-  # pycodestyle
-  "E",
-  # Pyflakes
-  "F",
-  # pyupgrade
-  "UP",
-  # flake8-bugbear
-  "B",
-  # flake8-simplify
-  "SIM",
-  # isort
-  "I"
+  "B", # flake8-bugbear
+  "E", # pycodestyle
+  "F", # Pyflakes
+  "I", # isort
+  "SIM", # flake8-simplify
+  "UP" # pyupgrade
 ]
+
+[tool.tomlsort]
+all = true
+no_comments = false

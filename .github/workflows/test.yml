@@ -20,7 +20,6 @@ jobs:
         target:
           - mypy
           - pytest
-          - ruff
         include:
           - target: pytest-cov
             python-version: 3.14

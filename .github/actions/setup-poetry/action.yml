@@ -26,14 +26,24 @@ runs:
         version: ${{ inputs.poetry-version }}
         virtualenvs-create: true
         virtualenvs-in-project: true
-    - name: Load cached venv
-      id: cached-poetry-dependencies
+    - name: Cache lockfile for pyproject
+      id: cached-lock
+      uses: actions/cache@v5
+      with:
+        path: poetry.lock
+        key: lock-${{ matrix.poetry-version }}-${{ hashFiles('pyproject.toml') }}
+    - name: Lock dependencies when uncached
+      if: ${{steps.cached-lock.outputs.cache-hit != 'true'}} # inexact = false
+      shell: sh
+      run: poetry lock
+    - name: Cache venv for OS, python, lockfile
+      id: cached-venv
       uses: actions/cache@v5
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-    - name: Install dependencies
-      if: ${{steps.cached-poetry-dependencies.outputs.cache-hit != 'true'}} # inexact = false
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
+    - name: Install dependencies when uncached
+      if: ${{steps.cached-venv.outputs.cache-hit != 'true'}} # inexact = false
       shell: sh
       run: poetry install --no-interaction --no-root
     - name: Install project
