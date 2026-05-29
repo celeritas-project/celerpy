@@ -51,8 +51,8 @@ def test_orange_stats_serialization():
 
 def test_bih_load():
     result = moutput.BihSizes.model_validate_json(
-        '{"bboxes":8,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":7}'
+        '{"bboxes":8,"internal_nodes":0,"leaf_nodes":1,"local_volume_ids":7}'
     )
     assert result == moutput.BihSizes(
-        bboxes=8, inner_nodes=0, leaf_nodes=1, local_volume_ids=7
+        bboxes=8, internal_nodes=0, leaf_nodes=1, local_volume_ids=7
     )
