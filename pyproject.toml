@@ -5,38 +5,41 @@ requires = [
   "poetry-dynamic-versioning>=1.9.1,<2.0.0"
 ]
 
-[tool.mypy]
-plugins = [
-  "pydantic.mypy"
+[project]
+authors = [{email = "johnsonsr@ornl.gov", name = "Seth R. Johnson"}]
+dependencies = [
+  "matplotlib>=3.7",
+  "numpy>=1.20",
+  "pydantic-settings>=2.0,<3.0",
+  "pydantic>=2.0,<3.0",
+  "typer"
 ]
-
-[tool.poetry]
-authors = ["Seth R. Johnson et al."]
 description = "Python front end to Celeritas"
+dynamic = ["version"]
 license = "Apache-2.0"
 name = "celerpy"
 packages = [{include = "celerpy"}]
 readme = "README.md"
-requires-plugins = {poetry-dynamic-versioning = {extras = ["plugin"], version = ">=1.9.1,<2.0.0"}}
-version = "0.1.0-dev"
-
-[tool.poetry.dependencies]
-matplotlib = ">=3.7"
-numpy = ">=1.20"
-pydantic = ">=2.0,<3.0"
-pydantic-settings = ">=2.0,<3.0"
-python = ">=3.11,<4.0"
-typer = "*"
+requires-python = ">=3.11,<4.0"
+version = "0.0.0" # Automatically updated via poetry-dynamic-versioning
 
 # Developer dependencies: note that style is handled by pre-commit
-[tool.poetry.group.dev.dependencies]
+[project.group.dev.dependencies]
 mypy = ">=1.18"
 pre-commit = ">=4.3"
 pytest = ">=8.4"
 pytest-cov = ">=7"
 
-[tool.poetry.scripts]
+[project.scripts]
 celerpy = "celerpy.cli:app"
+
+[tool.mypy]
+plugins = [
+  "pydantic.mypy"
+]
+
+[tool.poetry.requires-plugins]
+poetry-dynamic-versioning = {extras = ["plugin"], version = ">=1.0.0,<2.0.0"}
 
 [tool.poetry-dynamic-versioning]
 enable = true
