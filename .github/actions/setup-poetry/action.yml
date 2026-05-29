@@ -23,12 +23,12 @@ runs:
       id: setup-poetry
       shell: sh
       run: |
-        pipx install poetry==${{ inputs.poetry-version }}
-        command -v poetry
+        printf "::debug::%s %s\n" "Python location" "$(command -v python)"
+        pipx install --python python poetry==${{ inputs.poetry-version }}
+        printf "::debug::%s %s\n" "Poetry location" "$(command -v poetry)"
         # Configure dependencies to install in venv
-        poetry config --no-interaction \
-          virtualenvs.create true \
-          virtualenvs.in-project true
+        poetry config --no-interaction virtualenvs.create true
+        poetry config --no-interaction virtualenvs.in-project true
     - name: Cache lockfile for pyproject
       id: cached-lock
       uses: actions/cache@v5
@@ -38,7 +38,7 @@ runs:
     - name: Lock dependencies when uncached
       if: ${{steps.cached-lock.outputs.cache-hit != 'true'}} # inexact = false
       shell: sh
-      run: poetry lock
+      run: poetry -v lock
     - name: Cache venv for OS, python, lockfile
       id: cached-venv
       uses: actions/cache@v5
