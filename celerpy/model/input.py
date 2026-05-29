@@ -4,7 +4,7 @@
 """Input models for commands and configuration with Celeritas."""
 
 from enum import StrEnum, auto
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import FilePath, NonNegativeInt, PositiveFloat, PositiveInt
 from pydantic_core import to_json
@@ -38,7 +38,7 @@ class OrangeGeoFromCsg(_Model):
     unit_length: PositiveFloat = 1.0
     "Scale factor (input unit length), customizable for unit testing"
 
-    tol: Optional[Tolerance] = None
+    tol: Tolerance | None = None
     "Construction and tracking tolerance (native units)"
 
     # Structural conversion
@@ -51,13 +51,13 @@ class OrangeGeoFromCsg(_Model):
 
     # Debug output
 
-    objects_output_file: Optional[str] = None
+    objects_output_file: str | None = None
     "Write converted Geant4 object structure to a JSON file"
 
-    csg_output_file: Optional[str] = None
+    csg_output_file: str | None = None
     "Write constructed CSG surfaces and tree to a JSON file"
 
-    org_output_file: Optional[str] = None
+    org_output_file: str | None = None
     "Write final org.json to a JSON file"
 
 
@@ -95,13 +95,13 @@ class OrangeGeoFromGeant(OrangeGeoFromCsg):
 
 # celer-geo/GeoInput.hh
 class ModelSetup(_Model):
-    cuda_stack_size: Optional[NonNegativeInt] = None
-    cuda_heap_size: Optional[NonNegativeInt] = None
+    cuda_stack_size: NonNegativeInt | None = None
+    cuda_heap_size: NonNegativeInt | None = None
 
     geometry_file: FilePath
     "Path to the GDML input file"
 
-    perfetto_file: Optional[FilePath] = None
+    perfetto_file: FilePath | None = None
     "Path to write Perfetto profiling output"
 
 
@@ -110,10 +110,10 @@ class TraceSetup(_Model):
     _cmd: Literal["trace"] = "trace"
     "Command name in the JSON file"
 
-    geometry: Optional[GeometryEngine] = None
+    geometry: GeometryEngine | None = None
     "Geometry engine with which to perform the trace"
 
-    memspace: Optional[MemSpace] = None
+    memspace: MemSpace | None = None
     "Whether to perform the trace on CPU or GPU"
 
     volumes: bool = True
@@ -137,13 +137,13 @@ class ImageInput(_Model):
     vertical_pixels: NonNegativeInt = 512
     "Number of pixels along the y axis"
 
-    horizontal_divisor: Optional[PositiveInt] = None
+    horizontal_divisor: PositiveInt | None = None
     "Increase the horizontal window to be divisible by this number"
 
 
 # ad hoc: input to a 'trace' command
 class TraceInput(TraceSetup):
-    image: Optional[ImageInput] = None
+    image: ImageInput | None = None
     "Reuse the existing image"
 
 

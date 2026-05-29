@@ -38,7 +38,7 @@ class ImageParams(_Model):
 class TraceOutput(_Model):
     trace: TraceSetup
     image: ImageParams
-    volumes: Optional[list[str]] = None
+    volumes: list[str] | None = None
     sizeof_int: PositiveInt
 
 
@@ -140,8 +140,8 @@ class ExceptionDump(_Model):
     context: Optional["ExceptionDump"] = None
 
     # corecel/AssertIO.json.cc
-    what: Optional[str]
+    what: str | None
     which: str
-    condition: Optional[str] = None
-    file: Optional[str] = None
-    line: Optional[int] = None
+    condition: str | None = None
+    file: str | None = None
+    line: int | None = None

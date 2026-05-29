@@ -12,7 +12,7 @@ from importlib.resources import files
 from pathlib import Path
 from subprocess import TimeoutExpired
 from tempfile import NamedTemporaryFile
-from typing import Any, NamedTuple, Optional, Union
+from typing import Any, NamedTuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -126,7 +126,7 @@ class CelerGeo:
     refactor.
     """
 
-    image: Optional[ImageParams]
+    image: ImageParams | None
     volumes: dict[GeometryEngine, list[str]]
 
     @classmethod
@@ -170,9 +170,9 @@ class CelerGeo:
 
     def trace(
         self,
-        image: Optional[ImageInput] = None,
+        image: ImageInput | None = None,
         *,
-        geometry: Optional[GeometryEngine] = None,
+        geometry: GeometryEngine | None = None,
         **kwargs,
     ):
         """Trace with a geometry, memspace, etc."""
@@ -216,7 +216,7 @@ class CelerGeo:
 
         return (result, npimg)
 
-    def close(self, *, timeout: float = 0.25) -> Union[dict[str, dict], str]:
+    def close(self, *, timeout: float = 0.25) -> dict[str, dict] | str:
         """Cleanly exit the ray trace loop, returning run statistics if
         possible.
         """
@@ -286,7 +286,7 @@ def calc_image_axes(image: ImageParams) -> LabeledAxes:
 
 
 class Imager:
-    axes: Optional[LabeledAxes] = None
+    axes: LabeledAxes | None = None
 
     def __init__(self, celer_geo: CelerGeo, image: ImageInput):
         self.celer_geo = celer_geo
@@ -296,9 +296,9 @@ class Imager:
     def __call__(
         self,
         ax: mpl_Axes,
-        geometry: Optional[GeometryEngine] = None,
-        memspace: Optional[MemSpace] = None,
-        colorbar: Union[bool, None, mpl_Axes] = None,
+        geometry: GeometryEngine | None = None,
+        memspace: MemSpace | None = None,
+        colorbar: bool | None | mpl_Axes = None,
     ) -> dict[str, Any]:
         (trace_output, img) = self.celer_geo.trace(
             self.image, geometry=geometry, memspace=memspace
@@ -354,8 +354,8 @@ def plot_all_geometry(
     trace_image: Imager,
     *,
     colorbar: bool = True,
-    figsize: Optional[tuple] = None,
-    engines: Optional[Iterable] = None,
+    figsize: tuple | None = None,
+    engines: Iterable | None = None,
 ) -> Mapping[GeometryEngine, Any]:
     """Convenience function for plotting all available geometry types."""
     if engines is None:
@@ -376,7 +376,7 @@ def plot_all_geometry(
     if colorbar:
         all_cbar[:0] = [all_ax[-1]]
 
-    for ax, g, cb in zip(all_ax, engines, all_cbar):
+    for ax, g, cb in zip(all_ax, engines, all_cbar, strict=True):
         try:
             result[g] = trace_image(ax, geometry=g, colorbar=cb)
         except Exception as e:
@@ -387,7 +387,7 @@ def plot_all_geometry(
 def centered_image(
     center: ArrayLike = (0, 0, 0),
     *,
-    width: Union[float, tuple, np.ndarray],
+    width: float | tuple | np.ndarray,
     xdir: ArrayLike = (0, 0, 1),
     outdir: ArrayLike = (0, 1, 0),
     **kwargs: Any,
