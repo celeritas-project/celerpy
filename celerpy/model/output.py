@@ -83,48 +83,13 @@ class BihMetadata(_Model):
 
 
 # orange/OrangeParamsOutput.hh
-class UniverseIndexerSizes(_Model):
-    """Universe indexer sizes."""
-
-    surfaces: NonNegativeInt
-    volumes: NonNegativeInt
-
-
-# orange/OrangeParamsOutput.hh
-class OrangeSizes(_Model):
-    """Size properties of an ORANGE geometry."""
-
-    connectivity_records: NonNegativeInt
-    daughters: NonNegativeInt
-    fast_real3s: NonNegativeInt
-    local_surface_ids: NonNegativeInt
-    local_volume_ids: NonNegativeInt
-    logic_ints: NonNegativeInt
-    obz_records: NonNegativeInt
-    real_ids: NonNegativeInt
-    reals: NonNegativeInt
-    rect_arrays: NonNegativeInt
-    simple_units: NonNegativeInt
-    surface_types: NonNegativeInt
-    transforms: NonNegativeInt
-    univ_indices: NonNegativeInt
-    univ_types: NonNegativeInt
-    volume_ids: NonNegativeInt
-    volume_instance_ids: NonNegativeInt
-    volume_records: NonNegativeInt
-
-    bih: BihSizes
-    universe_indexer: UniverseIndexerSizes
-
-
-# orange/OrangeParamsOutput.hh
 class OrangeParamsOutput(_Model):
     """ORANGE geometry data structure sizes and scalars."""
 
     _category: Literal["internal"]
     _label: Literal["orange"]
     scalars: OrangeScalars
-    sizes: OrangeSizes
+    sizes: dict
     bih_metadata: BihMetadata
     tracking_logic: LogicNotation
 
