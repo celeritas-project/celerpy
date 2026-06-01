@@ -89,7 +89,7 @@ class OrangeParamsOutput(_Model):
     _category: Literal["internal"]
     _label: Literal["orange"]
     scalars: OrangeScalars
-    sizes: dict
+    sizes: dict[str, object]
     bih_metadata: BihMetadata
     tracking_logic: LogicNotation
 
