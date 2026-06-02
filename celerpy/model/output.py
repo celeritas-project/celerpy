@@ -55,21 +55,11 @@ class OrangeScalars(_Model):
     max_intersections: NonNegativeInt
     "Maximum number of surface intersections along a ray"
 
-    max_csg_levels: NonNegativeInt
-    "Maximum CSG logic tree depth"
+    max_csg_levels: Optional[NonNegativeInt] = None
+    "Maximum CSG logic tree depth unless using infix"
 
     tol: Tolerance
     "Construction and tracking tolerance"
-
-
-# orange/OrangeParamsOutput.hh
-class BihSizes(_Model):
-    """Bounding Interval Hierarchy tree sizes."""
-
-    bboxes: NonNegativeInt
-    internal_nodes: NonNegativeInt
-    leaf_nodes: NonNegativeInt
-    local_volume_ids: NonNegativeInt
 
 
 # orange/OrangeParamsOutput.hh
