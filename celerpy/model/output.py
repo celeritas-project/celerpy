@@ -63,7 +63,7 @@ class OrangeScalars(_Model):
 
 
 # orange/OrangeParamsOutput.hh
-class BihMetadata(_Model):
+class BvhMetadata(_Model):
     """Bounding Interval Hierarchy characteristics."""
 
     num_finite_bboxes: list[NonNegativeInt]
@@ -80,7 +80,7 @@ class OrangeParamsOutput(_Model):
     _label: Literal["orange"]
     scalars: OrangeScalars
     sizes: dict[str, object]
-    bih_metadata: BihMetadata
+    bvh_metadata: BvhMetadata
     tracking_logic: LogicNotation
 
 

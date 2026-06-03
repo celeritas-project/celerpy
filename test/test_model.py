@@ -52,7 +52,7 @@ def test_orange_stats_serialization():
 def test_orange_output():
     # See UniversesTest
     result = moutput.OrangeParamsOutput.model_validate_json(
-        '{"_category":"internal","_label":"orange","bih_metadata":{"depth":[4,3,1],"num_finite_bboxes":[4,4,1],"num_infinite_bboxes":[1,0,0]},"scalars":{"num_univ_levels":3,"max_faces":14,"max_intersections":14,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bih":{"bboxes":12,"internal_nodes":6,"leaf_nodes":9,"local_volume_ids":10},"connectivity_records":25,"daughters":3,"local_surface_ids":55,"local_volume_ids":21,"logic_ints":164,"obz_records":0,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indexer":{"surfaces":4,"volumes":4},"univ_indices":3,"univ_types":3,"volume_ids":12,"volume_instance_ids":12,"volume_records":12},"tracking_logic":"infix"}'
+        '{"_category":"internal","_label":"orange","bvh_metadata":{"depth":[4,3,1],"num_finite_bboxes":[4,4,1],"num_infinite_bboxes":[1,0,0]},"scalars":{"num_univ_levels":3,"max_faces":14,"max_intersections":14,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":12,"internal_nodes":6,"leaf_nodes":9,"local_volume_ids":10},"connectivity_records":25,"daughters":3,"local_surface_ids":55,"local_volume_ids":21,"logic_ints":164,"obz_records":0,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indexer":{"surfaces":4,"volumes":4},"univ_indices":3,"univ_types":3,"volume_ids":12,"volume_instance_ids":12,"volume_records":12},"tracking_logic":"infix"}'
     )
     assert result == moutput.OrangeParamsOutput(
         scalars=moutput.OrangeScalars(
@@ -63,7 +63,7 @@ def test_orange_output():
             tol=moutput.Tolerance(rel=1.5e-08, abs=1.5e-08),
         ),
         sizes={
-            "bih": {
+            "bvh": {
                 "bboxes": 12,
                 "internal_nodes": 6,
                 "leaf_nodes": 9,
@@ -88,7 +88,7 @@ def test_orange_output():
             "volume_instance_ids": 12,
             "volume_records": 12,
         },
-        bih_metadata=moutput.BihMetadata(
+        bvh_metadata=moutput.BvhMetadata(
             num_finite_bboxes=[4, 4, 1],
             num_infinite_bboxes=[1, 0, 0],
             depth=[4, 3, 1],
