@@ -18,9 +18,12 @@ dependencies: poetry.lock
 test-dependencies: poetry.lock
 	poetry install --without=dev --with=test --no-root
 
-.PHONY: setup
+.PHONY: pre-commit
 pre-commit: dependencies
 	$(RUN) pre-commit install
+
+.PHONY: setup
+setup: pre-commit
 
 .PHONY: install
 install:
