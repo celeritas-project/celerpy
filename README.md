@@ -26,6 +26,8 @@ After cloning the celerpy repository and installing poetry, run `make setup` to:
 - install all project and development dependencies from `poetry.lock`, and
 - install pre-commit hooks.
 
+After running `make setup`, run `make install` to install celerpy into the Poetry environment.
+
 ## Development and testing
 
 Activating the poetry environment will load the python version and all development dependencies. It is faster than manually invoking `poetry run` or using the included makefile.
@@ -44,3 +46,36 @@ Style and linting should be performed automatically at every `git commit` after 
 ## Release/versioning
 
 Not yet implemented:
+
+## Visualizing a geometry
+
+One of the current uses of `celerpy` is to launch the [`celer-geo`](https://celeritas-project.github.io/celeritas/user/usage/execution/utilities.html) visualization application from a Celeritas installation, send it geometry inputs, and render the resulting image in Python. The following example shows how to create an image from a GDML file:
+
+```python
+from pathlib import Path
+import matplotlib.pyplot as plt
+
+from celerpy import model, visualize
+from celerpy.settings import settings
+
+# Point to a Celeritas installation prefix containing bin/celer-geo
+settings.prefix_path = Path("path/to/celeritas/install")
+
+# Input geometry
+geometry = Path("path/to/geometry.gdml")
+
+# Set the image coordinates, direction along the rendered x-axis, and pixels
+# used for ray tracing
+image = model.ImageInput(
+    lower_left=[0, -100, -100],
+    upper_right=[0, 100, 100],
+    rightward=[0.0, 0.0, 1.0],
+    vertical_pixels=1024
+)
+
+# Start celer-geo, trace the geometry, and plot the result
+with visualize.CelerGeo.from_filename(geometry) as celer_geo:
+    trace = visualize.Imager(celer_geo, image)
+    fig, ax = plt.subplots()
+    trace(ax)
+    plt.show()

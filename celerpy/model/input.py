@@ -146,6 +146,12 @@ class TraceInput(TraceSetup):
     image: ImageInput | None = None
     "Reuse the existing image"
 
+    def model_dump_json(self, **kwargs):
+        """Override to ensure _cmd is always set to trace."""
+        result = self.model_dump(**kwargs)
+        result["_cmd"] = "trace"
+        return to_json(result).decode()
+
 
 # celer-geo/celer-geo.cc
 class OrangeStats(_Model):
